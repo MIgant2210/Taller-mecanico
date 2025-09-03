@@ -42,7 +42,7 @@
   margin: 0;
   font-size: 1.3rem;
   white-space: nowrap;
-  color: var(--ferrari-yellow);
+  color: var(--pure-white) !important; /* MODIFICADO: Blanco en lugar de amarillo */
   font-weight: 600;
   letter-spacing: 1px;
 }
@@ -50,7 +50,7 @@
 .menu-toggle {
   background: transparent;
   border: none;
-  color: var(--ferrari-yellow);
+  color: var(--pure-white) !important; /* MODIFICADO: Blanco */
   font-size: 1.2rem;
   cursor: pointer;
   transition: all 0.3s;
@@ -58,7 +58,7 @@
 }
 
 .menu-toggle:hover {
-  color: white;
+  color: var(--ferrari-yellow) !important; /* MODIFICADO: Amarillo al hover */
 }
 
 nav {
@@ -70,7 +70,7 @@ nav {
   display: flex;
   align-items: center;
   padding: 1rem 1.5rem;
-  color: var(--metal-gray);
+  color: var(--pure-white) !important; /* MODIFICADO: Blanco puro */
   text-decoration: none;
   font-weight: 500;
   cursor: pointer;
@@ -78,14 +78,14 @@ nav {
 }
 
 .nav-item.active {
-  background: rgba(230, 36, 41, 0.2);
+  background: rgba(230, 36, 41, 0.3) !important; /* MODIFICADO: Rojo más suave */
   border-left: 3px solid var(--ferrari-red);
-  color: white;
+  color: var(--pure-white) !important; /* MODIFICADO: Blanco */
 }
 
 .nav-item:hover:not(.active) {
-  color: var(--ferrari-yellow);
-  background: rgba(255, 215, 0, 0.1);
+  color: var(--pure-white) !important; /* MODIFICADO: Blanco */
+  background: rgba(255, 255, 255, 0.1) !important; /* MODIFICADO: Fondo más suave */
 }
 
 .icon {
@@ -95,11 +95,22 @@ nav {
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--pure-white) !important; /* MODIFICADO: Íconos blancos */
+}
+
+.nav-item:hover:not(.active) .icon {
+  color: var(--ferrari-yellow) !important; /* MODIFICADO: Íconos amarillos en hover */
+}
+
+.nav-item.active .icon {
+  color: var(--pure-white) !important; /* MODIFICADO: Íconos blancos en activo */
 }
 
 .nav-text {
   white-space: nowrap;
   font-size: 0.95rem;
+  color: var(--pure-white) !important; /* MODIFICADO: Texto blanco */
+  font-weight: 500;
 }
 
 /* Contenido Principal */

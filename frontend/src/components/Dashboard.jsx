@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
 import { 
   FaUsers, 
   FaCar, 
@@ -10,7 +9,9 @@ import {
   FaUserCircle,
   FaCalendarAlt,
   FaWrench,
-  FaChartLine
+  FaChartLine,
+  FaBox,
+  FaUserTie
 } from 'react-icons/fa';
 import '../styles/dashboard.css';
 
@@ -23,7 +24,7 @@ const Dashboard = () => {
     clientes: 42,
     vehiculos: 18,
     reparaciones: 7,
-    ingresos: '$12,850'
+    ingresos: 'Q12,850'
   };
 
   const urgentRepairs = [
@@ -76,10 +77,13 @@ const Dashboard = () => {
           {[
             { name: 'Inicio', icon: <FaChartLine />, tab: 'inicio' },
             { name: 'Clientes', icon: <FaUsers />, tab: 'clientes' },
-            { name: 'Vehículos', icon: <FaCar />, tab: 'vehiculos' },
-            { name: 'Reparaciones', icon: <FaTools />, tab: 'reparaciones' },
+            { name: 'Inventario', icon: <FaBox />, tab: 'inventario' },
+            { name: 'Agenda', icon: <FaCalendarAlt />, tab: 'agenda' },
+            { name: 'Notificaciones', icon: <FaBell />, tab: 'notificaciones' },
+            { name: 'Servicios', icon: <FaTools />, tab: 'servicios' },
+            { name: 'Expedientes de Vehiculos', icon: <FaCar />, tab: 'expedientes' },
             { name: 'Facturación', icon: <FaFileInvoiceDollar />, tab: 'facturacion' },
-            { name: 'Calendario', icon: <FaCalendarAlt />, tab: 'calendario' }
+            { name: 'Empleados', icon: <FaUserTie />, tab: 'empleados' }
           ].map((item) => (
             <motion.div
               key={item.name}
@@ -101,7 +105,13 @@ const Dashboard = () => {
           <h1>
             {activeTab === 'inicio' && 'PANEL DE CONTROL'}
             {activeTab === 'clientes' && 'GESTIÓN DE CLIENTES'}
-            {/* Agrega más títulos según tabs */}
+            {activeTab === 'inventario' && 'INVENTARIO'}
+            {activeTab === 'agenda' && 'AGENDA'}
+            {activeTab === 'notificaciones' && 'NOTIFICACIONES'}
+            {activeTab === 'servicios' && 'SERVICIOS'}
+            {activeTab === 'expedientes' && 'EXPEDIENTES DE VEHÍCULOS'}
+            {activeTab === 'facturacion' && 'FACTURACIÓN'}
+            {activeTab === 'empleados' && 'GESTIÓN DE EMPLEADOS'}
           </h1>
           <div className="header-actions">
             <button className="icon-button">
@@ -204,6 +214,16 @@ const Dashboard = () => {
         )}
 
         {/* Otras pestañas pueden ir aquí */}
+        {activeTab !== 'inicio' && (
+          <motion.div 
+            className="welcome-card"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <h3>Módulo en Desarrollo</h3>
+            <p>La sección de {activeTab} está actualmente en desarrollo.</p>
+          </motion.div>
+        )}
       </div>
     </div>
   );
