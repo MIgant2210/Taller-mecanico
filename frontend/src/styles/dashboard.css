@@ -16,76 +16,98 @@
   font-family: 'Montserrat', sans-serif;
 }
 
-/* Sidebar de Lujo */
+/* ===== SIDEBAR MEJORADO ===== */
 .sidebar {
+  width: 250px;
   height: 100vh;
   background: var(--carbon-black);
   color: white;
-  padding: 2rem 0;
-  overflow: hidden;
-  border-right: 4px solid var(--ferrari-red);
+  padding: 1.5rem 0;
+  overflow-y: auto;
+  border-right: 3px solid var(--ferrari-red);
   display: flex;
   flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  transition: width 0.3s ease;
+}
+
+.sidebar.collapsed {
+  width: 70px;
 }
 
 .sidebar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 1.5rem;
-  margin-bottom: 2rem;
+  padding: 0 1.2rem;
+  margin-bottom: 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 1rem;
 }
 
 .sidebar-header h2 {
   margin: 0;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   white-space: nowrap;
-  color: var(--pure-white) !important; /* MODIFICADO: Blanco en lugar de amarillo */
+  color: var(--pure-white);
   font-weight: 600;
   letter-spacing: 1px;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar.collapsed .sidebar-header h2 {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .menu-toggle {
   background: transparent;
   border: none;
-  color: var(--pure-white) !important; /* MODIFICADO: Blanco */
-  font-size: 1.2rem;
+  color: var(--pure-white);
+  font-size: 1.1rem;
   cursor: pointer;
   transition: all 0.3s;
-  padding: 0.5rem;
+  padding: 0.4rem;
+  border-radius: 4px;
 }
 
 .menu-toggle:hover {
-  color: var(--ferrari-yellow) !important; /* MODIFICADO: Amarillo al hover */
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--ferrari-yellow);
 }
 
 nav {
   flex-grow: 1;
   overflow-y: auto;
+  padding: 0 0.5rem;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  padding: 1rem 1.5rem;
-  color: var(--pure-white) !important; /* MODIFICADO: Blanco puro */
+  padding: 0.9rem 1rem;
+  color: var(--pure-white);
   text-decoration: none;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s;
+  white-space: nowrap;
+  border-radius: 6px;
+  margin: 0.2rem 0;
 }
 
 .nav-item.active {
-  background: rgba(230, 36, 41, 0.3) !important; /* MODIFICADO: Rojo más suave */
+  background: rgba(230, 36, 41, 0.25);
   border-left: 3px solid var(--ferrari-red);
-  color: var(--pure-white) !important; /* MODIFICADO: Blanco */
+  color: var(--pure-white);
 }
 
 .nav-item:hover:not(.active) {
-  color: var(--pure-white) !important; /* MODIFICADO: Blanco */
-  background: rgba(255, 255, 255, 0.1) !important; /* MODIFICADO: Fondo más suave */
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--pure-white);
 }
 
 .icon {
@@ -95,30 +117,48 @@ nav {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--pure-white) !important; /* MODIFICADO: Íconos blancos */
+  color: var(--pure-white);
+  transition: margin 0.3s ease;
+}
+
+.sidebar.collapsed .icon {
+  margin-right: 0;
 }
 
 .nav-item:hover:not(.active) .icon {
-  color: var(--ferrari-yellow) !important; /* MODIFICADO: Íconos amarillos en hover */
+  color: var(--ferrari-yellow);
 }
 
 .nav-item.active .icon {
-  color: var(--pure-white) !important; /* MODIFICADO: Íconos blancos en activo */
+  color: var(--pure-white);
 }
 
 .nav-text {
   white-space: nowrap;
-  font-size: 0.95rem;
-  color: var(--pure-white) !important; /* MODIFICADO: Texto blanco */
+  font-size: 0.9rem;
+  color: var(--pure-white);
   font-weight: 500;
+  transition: opacity 0.3s ease;
 }
 
-/* Contenido Principal */
+.sidebar.collapsed .nav-text {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ===== CONTENIDO PRINCIPAL MEJORADO ===== */
 .main-content {
   flex: 1;
-  padding: 2rem 3rem;
+  padding: 2rem;
   background: var(--pure-white);
   overflow-y: auto;
+  margin-left: 250px;
+  transition: margin-left 0.3s ease;
+  min-height: 100vh;
+}
+
+.sidebar.collapsed ~ .main-content {
+  margin-left: 70px;
 }
 
 .dashboard-header {
@@ -126,41 +166,153 @@ nav {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--metal-gray);
 }
 
 .dashboard-header h1 {
   color: var(--carbon-black);
   margin: 0;
-  font-size: 1.8rem;
+  font-size: 1.7rem;
   font-weight: 700;
-  letter-spacing: 1px;
 }
 
 .header-actions {
   display: flex;
-  gap: 1rem;
+  gap: 0.8rem;
+  align-items: center;
 }
 
 .icon-button {
   background: none;
   border: none;
   color: var(--carbon-black);
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   cursor: pointer;
   transition: all 0.3s;
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
+  position: relative;
 }
 
 .icon-button:hover {
   background: rgba(0, 0, 0, 0.05);
+  color: var(--ferrari-red);
 }
+
+.notification-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  background: var(--ferrari-red);
+  color: white;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+}
+
+/* ===== SIDEBAR FOOTER MEJORADO ===== */
+.sidebar-footer {
+  margin-top: auto;
+  padding: 1rem 0.8rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--carbon-black);
+  position: sticky;
+  bottom: 0;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+  padding: 0 0.5rem;
+}
+
+.user-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--ferrari-red), var(--ferrari-yellow));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: white;
+  font-weight: 600;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  transition: opacity 0.3s ease;
+}
+
+.user-name {
+  color: white;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 0.2rem;
+}
+
+.user-role {
+  color: var(--ferrari-yellow);
+  font-size: 0.75rem;
+  text-transform: capitalize;
+  opacity: 0.9;
+}
+
+.logout-btn {
+  background: rgba(230, 36, 41, 0.15);
+  border: 1px solid rgba(230, 36, 41, 0.3);
+  color: white;
+  padding: 0.7rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  transition: all 0.3s ease;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.logout-btn:hover {
+  background: rgba(230, 36, 41, 0.25);
+  border-color: var(--ferrari-red);
+  transform: translateY(-1px);
+}
+
+.sidebar.collapsed .user-details,
+.sidebar.collapsed .logout-btn span {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sidebar.collapsed .logout-btn {
+  justify-content: center;
+  padding: 0.7rem;
+}
+
+.sidebar.collapsed .user-info {
+  justify-content: center;
+}
+
+/* ===== ESTILOS EXISTENTES (MANTENIDOS) ===== */
 
 /* Tarjetas */
 .welcome-card {
@@ -347,6 +499,45 @@ nav {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
+/* Header Actions Modern (Mantenido) */
+.header-actions-modern {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.notification-btn, .profile-btn {
+  background: var(--ferrari-red);
+  color: white;
+  border: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1.3rem;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(230, 36, 41, 0.3);
+}
+
+.notification-btn:hover, .profile-btn:hover {
+  background: #c11f24;
+  transform: scale(1.05);
+  box-shadow: 0 6px 18px rgba(230, 36, 41, 0.4);
+}
+
+/* Asegurar que Agenda no se afecte */
+.agenda-moderna-blanca {
+  padding: 2rem;
+  min-height: calc(100vh - 100px);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
 /* Scrollbar personalizada */
 ::-webkit-scrollbar {
   width: 8px;
@@ -365,289 +556,83 @@ nav {
   background: #555;
 }
 
-/* ===== CORRECCIONES PARA EL LAYOUT ===== */
-
-/* Evitar que el sidebar se mueva */
-.sidebar {
-  position: fixed !important;
-  left: 0;
-  top: 0;
-  height: 100vh;
-  z-index: 1000;
+.sidebar::-webkit-scrollbar {
+  width: 4px;
 }
 
-/* Ajustar el contenido principal para que no se oculte */
-.main-content {
-  margin-left: 250px; /* Mismo ancho que el sidebar abierto */
-  width: calc(100% - 250px);
-  transition: margin-left 0.3s ease;
+.sidebar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
 }
 
-/* Cuando el sidebar está cerrado */
-.sidebar[style*="width: 80px"] ~ .main-content {
-  margin-left: 80px;
-  width: calc(100% - 80px);
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
 }
 
-/* Header fijo */
-/* ===== CORRECCIÓN ESPECÍFICA SIN AFECTAR LAYOUT ===== */
-
-/* Botones de notificación y perfil - POSICIÓN CORRECTA */
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding: 1.5rem 2rem;
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  border: 2px solid var(--ferrari-red);
-  position: relative;
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
-.header-actions-modern {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  position: absolute;
-  top: 50%;
-  right: 2rem;
-  transform: translateY(-50%);
-}
-
-.notification-btn, .profile-btn {
-  background: var(--ferrari-red);
-  color: white;
-  border: none;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 1.3rem;
-  position: relative;
-  box-shadow: 0 4px 12px rgba(230, 36, 41, 0.3);
-}
-
-.notification-btn:hover, .profile-btn:hover {
-  background: #c11f24;
-  transform: scale(1.05);
-  box-shadow: 0 6px 18px rgba(230, 36, 41, 0.4);
-}
-
-.notification-badge {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: var(--ferrari-yellow);
-  color: var(--carbon-black);
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  font-size: 0.8rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid white;
-}
-
-/* Asegurar que el título del header tenga espacio */
-.dashboard-header h1 {
-  color: var(--carbon-black);
-  margin: 0;
-  font-size: 1.8rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  padding-right: 120px; /* Espacio para los botones */
-  margin-right: auto;
-}
-
-/* Contenido principal sin cambios */
-.main-content {
-  flex: 1;
-  padding: 0 2rem 2rem 2rem;
-  background: var(--pure-white);
-  overflow-y: auto;
-}
-
-/* Sidebar sin cambios */
-.sidebar {
-  height: 100vh;
-  background: var(--carbon-black);
-  color: white;
-  padding: 2rem 0;
-  overflow: hidden;
-  border-right: 4px solid var(--ferrari-red);
-  display: flex;
-  flex-direction: column;
-  position: sticky;
-  top: 0;
-}
-
-/* Responsive para botones */
+/* ===== RESPONSIVE MEJORADO ===== */
 @media (max-width: 1024px) {
+  .sidebar {
+    width: 70px;
+  }
+  
+  .sidebar:not(.collapsed) {
+    width: 250px;
+    z-index: 1001;
+    box-shadow: 5px 0 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .main-content {
+    margin-left: 70px;
+    padding: 1.5rem;
+  }
+  
   .dashboard-header {
-    padding: 1.2rem 1.5rem;
+    padding: 1.2rem;
   }
   
   .dashboard-header h1 {
     font-size: 1.5rem;
-    padding-right: 100px;
-  }
-  
-  .notification-btn, .profile-btn {
-    width: 45px;
-    height: 45px;
-    font-size: 1.2rem;
-  }
-  
-  .header-actions-modern {
-    right: 1.5rem;
   }
 }
 
 @media (max-width: 768px) {
+  .main-content {
+    padding: 1.2rem;
+    margin-left: 0;
+  }
+  
+  .sidebar {
+    transform: translateX(-100%);
+    width: 280px;
+    box-shadow: 5px 0 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .sidebar:not(.collapsed) {
+    transform: translateX(0);
+  }
+  
+  .sidebar.collapsed {
+    transform: translateX(-100%);
+  }
+  
   .dashboard-header {
     flex-direction: column;
     gap: 1rem;
-    padding: 1rem;
     text-align: center;
+    padding: 1.2rem;
   }
   
-  .dashboard-header h1 {
-    padding-right: 0;
-    margin-right: 0;
-    width: 100%;
-  }
-  
-  .header-actions-modern {
-    position: static;
-    transform: none;
+  .header-actions, .header-actions-modern {
     justify-content: center;
     width: 100%;
   }
   
-  .notification-btn, .profile-btn {
-    width: 40px;
-    height: 40px;
-    font-size: 1.1rem;
-  }
-}
-
-/* Asegurar que Agenda no se afecte */
-.agenda-moderna-blanca {
-  padding: 2rem;
-  min-height: calc(100vh - 100px);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  position: relative;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-/* Botones específicos para Agenda */
-.agenda-header .header-actions-modern {
-  position: static;
-  transform: none;
-}
-
-.agenda-header .notification-btn,
-.agenda-header .profile-btn {
-  display: none; /* Ocultar en agenda si es necesario */
-}
-
-/* ===== HEADER DEL DASHBOARD (SOLO PARA PESTAÑAS GENERALES) ===== */
-
-/* Header solo se muestra en pestañas que no son Agenda */
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding: 1.5rem 2rem;
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  border: 2px solid var(--ferrari-red);
-  position: relative;
-}
-
-/* Botones solo en header del Dashboard */
-.header-actions-modern {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-/* Botones de notificación y perfil */
-.notification-btn, .profile-btn {
-  background: var(--ferrari-red);
-  color: white;
-  border: none;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 1.3rem;
-  position: relative;
-  box-shadow: 0 4px 12px rgba(230, 36, 41, 0.3);
-}
-
-.notification-btn:hover, .profile-btn:hover {
-  background: #c11f24;
-  transform: scale(1.05);
-  box-shadow: 0 6px 18px rgba(230, 36, 41, 0.4);
-}
-
-.notification-badge {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: var(--ferrari-yellow);
-  color: var(--carbon-black);
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  font-size: 0.8rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid white;
-}
-
-/* Asegurar que el título del header tenga espacio */
-.dashboard-header h1 {
-  color: var(--carbon-black);
-  margin: 0;
-  font-size: 1.8rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  padding-right: 120px;
-  margin-right: auto;
-}
-
-/* Cuando se está en Agenda, el main-content no tiene padding superior */
-.main-content.agenda-active {
-  padding-top: 0;
-}
-
-/* Responsive para botones */
-@media (max-width: 1024px) {
-  .dashboard-header {
-    padding: 1.2rem 1.5rem;
-  }
-  
-  .dashboard-header h1 {
-    font-size: 1.5rem;
-    padding-right: 100px;
+  .stats-grid {
+    grid-template-columns: 1fr;
   }
   
   .notification-btn, .profile-btn {
@@ -657,28 +642,3 @@ nav {
   }
 }
 
-@media (max-width: 768px) {
-  .dashboard-header {
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
-    text-align: center;
-  }
-  
-  .dashboard-header h1 {
-    padding-right: 0;
-    margin-right: 0;
-    width: 100%;
-  }
-  
-  .header-actions-modern {
-    justify-content: center;
-    width: 100%;
-  }
-  
-  .notification-btn, .profile-btn {
-    width: 40px;
-    height: 40px;
-    font-size: 1.1rem;
-  }
-}

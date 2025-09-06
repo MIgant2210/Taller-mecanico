@@ -12,10 +12,9 @@
   --success-green: #27ae60;
 }
 
+/* CAMBIO REALIZADO - Fondo con gradiente azul */
 .agenda-moderna-blanca {
-  padding: 2rem;
-  min-height: calc(100vh - 100px);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #ffffff !important; /* Fondo blanco sólido */
   position: relative;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
@@ -210,8 +209,8 @@
 }
 
 .btn-calendar-toggle {
-  background: linear-gradient(135deg, var(--secondary-blue) 0%, var(--ferrari-yellow) 100%);
-  color: var(--primary-blue);
+  background: #4CAF50 !important; /* Verde sólido */
+  color: white !important;
   border: none;
   padding: 1rem 2rem;
   border-radius: 25px;
