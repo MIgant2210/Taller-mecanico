@@ -21,6 +21,9 @@ import Agenda from './Agenda';
 import Users from './Users';
 import '../styles/dashboard.css';
 
+// Importa tu logo
+import logo from '../assets/images/logo.jpeg';
+
 const Dashboard = () => {
   const { currentUser, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -46,7 +49,7 @@ const Dashboard = () => {
 
   // Animaciones
   const sidebarVariants = {
-    open: { width: 250 },
+    open: { width: 300 },
     closed: { width: 80 }
   };
 
@@ -78,39 +81,76 @@ const Dashboard = () => {
     window.location.href = '/login';
   };
 
+  // Función para ir a Agenda desde la campanita
+  const goToAgenda = () => {
+    setActiveTab('agenda');
+  };
+
+  // Función para ir a Usuarios desde el ícono de usuario
+  const goToUsers = () => {
+    setActiveTab('usuarios');
+  };
+
   return (
     <div className="dashboard-container">
-      {/* Sidebar Elegante */}
+      {/* Sidebar Elegante y Formal */}
       <motion.div 
         className="sidebar"
         animate={sidebarOpen ? "open" : "closed"}
         variants={sidebarVariants}
         initial="open"
       >
+        {/* Logo con imagen - MEJORADO */}
+        <div className="sidebar-logo">
+          <div className="logo-container">
+            <motion.div 
+              className="logo-img"
+              style={{
+                backgroundImage: `url(${logo})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }}
+              animate={{ scale: sidebarOpen ? 1 : 0.8 }}
+              transition={{ duration: 0.2 }}
+            />
+            <motion.span 
+              className="logo-text"
+              animate={{ opacity: sidebarOpen ? 1 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              Turbo Garage
+            </motion.span>
+          </div>
+        </div>
+        
+        {/* Botón para abrir/cerrar menú */}
         <div className="sidebar-header">
-          <motion.h2
-            animate={{ opacity: sidebarOpen ? 1 : 0 }}
-          >
-            🏎️ TALLER
-          </motion.h2>
-          <button 
+          <motion.button 
             onClick={() => setSidebarOpen(!sidebarOpen)} 
             className="menu-toggle"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
           >
-            {sidebarOpen ? '◄' : '►'}
-          </button>
+            {sidebarOpen ? '‹' : '›'}
+          </motion.button>
         </div>
         
         <nav>
           {filteredMenu.map((item) => (
             <motion.div
               key={item.name}
-              whileHover={{ backgroundColor: 'rgba(255, 215, 0, 0.1)' }}
+              whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
               onClick={() => setActiveTab(item.tab)}
             >
               <div className={`nav-item ${activeTab === item.tab ? 'active' : ''}`}>
                 <span className="icon">{item.icon}</span>
-                <span className="nav-text">{item.name}</span>
+                <motion.span 
+                  className="nav-text"
+                  animate={{ opacity: sidebarOpen ? 1 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {item.name}
+                </motion.span>
               </div>
             </motion.div>
           ))}
@@ -122,18 +162,26 @@ const Dashboard = () => {
             <div className="user-avatar">
               <FaUserCircle />
             </div>
-            <div className="user-details">
+            <motion.div 
+              className="user-details"
+              animate={{ opacity: sidebarOpen ? 1 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
               <span className="user-name">{currentUser?.nombre}</span>
               <span className="user-role">{currentUser?.rol}</span>
-            </div>
+            </motion.div>
           </div>
           <motion.button
-            whileHover={{ backgroundColor: 'rgba(230, 36, 41, 0.2)' }}
+            whileHover={{ scale: 1.02 }}
             className="logout-btn"
             onClick={handleLogout}
           >
-            <FaSignOutAlt />
-            <span>Cerrar Sesión</span>
+            <motion.span
+              animate={{ opacity: sidebarOpen ? 1 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              Cerrar Sesión
+            </motion.span>
           </motion.button>
         </div>
       </motion.div>
@@ -153,14 +201,29 @@ const Dashboard = () => {
               {activeTab === 'facturacion' && 'FACTURACIÓN'}
               {activeTab === 'empleados' && 'GESTIÓN DE EMPLEADOS'}
             </h1>
-            <div className="header-actions-modern">
-              <button className="notification-btn">
+            <div className="header-actions">
+              {/* Botón de campanita que va a Agenda */}
+              <motion.button 
+                className="icon-button"
+                onClick={goToAgenda}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                title="Ir a Agenda"
+              >
                 <FaBell />
                 <span className="notification-badge">3</span>
-              </button>
-              <button className="profile-btn">
+              </motion.button>
+              
+              {/* Botón de usuario que va a Usuarios */}
+              <motion.button 
+                className="icon-button"
+                onClick={goToUsers}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                title="Ir a Usuarios"
+              >
                 <FaUserCircle />
-              </button>
+              </motion.button>
             </div>
           </header>
         )}
@@ -175,7 +238,7 @@ const Dashboard = () => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
             >
-              <h3>Bienvenido, {currentUser?.nombre}</h3>
+              <h3>Bienvenido, {currentUser?.nombre} 👋</h3>
               <p>Hoy es {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
               <p>Rol: <strong>{currentUser?.rol}</strong></p>
               
@@ -215,7 +278,7 @@ const Dashboard = () => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
-              <h2>Reparaciones Urgentes</h2>
+              <h2>🔧 Reparaciones Urgentes</h2>
               <div className="repairs-list">
                 {urgentRepairs.map(repair => (
                   <div key={repair.id} className="repair-item">
@@ -238,7 +301,7 @@ const Dashboard = () => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
             >
-              <h2>Próximas Citas</h2>
+              <h2>📅 Próximas Citas</h2>
               <div className="appointments-list">
                 {upcomingAppointments.map(app => (
                   <div key={app.id} className="appointment-item">

@@ -43,6 +43,34 @@ export const AuthProvider = ({ children }) => {
       rol: 'recepcion',
       permisos: ['dashboard', 'clientes', 'agenda', 'facturacion'],
       activo: true
+    },
+    // Agregar más usuarios para los roles faltantes
+    {
+      id: 4,
+      nombre: 'Ana Finanzas',
+      email: 'finanzas@taller.com',
+      password: 'ferrari123',
+      rol: 'finanzas',
+      permisos: ['dashboard', 'facturacion'],
+      activo: true
+    },
+    {
+      id: 5,
+      nombre: 'Carlos Inteligencia',
+      email: 'inteligencia@taller.com',
+      password: 'ferrari123',
+      rol: 'inteligencia',
+      permisos: ['dashboard', 'clientes', 'vehiculos', 'agenda'],
+      activo: true
+    },
+    {
+      id: 6,
+      nombre: 'Cliente Ejemplo',
+      email: 'cliente@taller.com',
+      password: 'ferrari123',
+      rol: 'cliente',
+      permisos: ['dashboard'],
+      activo: true
     }
   ];
 
@@ -69,7 +97,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = (email, password) => {
+  const login = (email, password, selectedRole = null) => {
     // Buscar usuario
     const user = demoUsers.find(u => 
       u.email === email && 
@@ -78,6 +106,14 @@ export const AuthProvider = ({ children }) => {
     );
     
     if (user) {
+      // VERIFICAR que el rol seleccionado coincida con el rol real del usuario
+      if (selectedRole && user.rol !== selectedRole) {
+        return { 
+          success: false, 
+          error: `Este usuario no tiene permisos de ${roles.find(r => r.id === selectedRole)?.label}. Selecciona el rol correcto.` 
+        };
+      }
+      
       // Remover password antes de guardar el usuario
       const { password: _, ...userWithoutPassword } = user;
       
@@ -157,5 +193,15 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+// Agregar esta constante fuera del componente para usarla en la validación
+const roles = [
+  { id: 'mecanico', label: 'Mecánico' },
+  { id: 'recepcion', label: 'Recepción' },
+  { id: 'administrador', label: 'Administrador' },
+  { id: 'finanzas', label: 'Finanzas' },
+  { id: 'inteligencia', label: 'Inteligencia' },
+  { id: 'cliente', label: 'Cliente' }
+];
 
 export default AuthContext;

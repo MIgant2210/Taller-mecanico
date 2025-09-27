@@ -1,188 +1,267 @@
 :root {
-  --ferrari-red: #e62429;
-  --metal-gray: #2a2a2a;
-  --light-gray: #f5f5f5;
-  --mechanic-blue: #3B82F6;
-  --carbon-texture: linear-gradient(135deg, #333 25%, #444 25%, #444 50%, #333 50%, #333 75%, #444 75%);
+  --accent-orange: #f97316;
+  --dark-gray: #1f2937;
+  --white: #ffffff;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --black: #000000;
 }
 
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: var(--dark-gray);
+  color: var(--white);
+}
+
+/* Imagen de fondo */
 .login-container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   min-height: 100vh;
-  background-color: var(--metal-gray);
-  position: relative;
-  overflow: hidden;
+  padding: 2rem;
+  background-image: url('../assets/images/fondo-taller.jpeg'); /* reemplaza con tu imagen */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-.login-background {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: var(--carbon-texture);
-  background-size: 10px 10px;
-  opacity: 0.5;
-  z-index: 0;
-}
-
-.login-box {
-  background: white;
-  padding: 2.5rem;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  width: 380px;
-  position: relative;
-  z-index: 1;
-  border-top: 4px solid var(--ferrari-red);
-  transition: transform 0.3s ease;
-}
-
-.login-box:hover {
-  transform: translateY(-5px);
-}
-
-/* Contenedor del gif de tuerca */
-.tuerca-gif-container {
-  position: absolute;
-  top: -30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: white;
-  padding: 8px;
-  border-radius: 50%;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-.tuerca-gif {
-  width: 50px;
-  height: 50px;
-  filter: contrast(1.2);
-}
-
-.logo-container {
+/* Título principal */
+.logo-header {
   text-align: center;
+  margin-bottom: 2rem;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 1rem 2rem;
+  border-radius: 12px;
+}
+
+.logo-header h1 {
+  font-size: 2.5rem;
+  color: var(--accent-orange);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.logo-header img {
+  width: 90px; /* antes era 80px o más */
+  height: auto;
+  margin-bottom: 1rem;
+}
+
+/* Selector de roles */
+.worker-selection {
+  background-color: rgba(255, 255, 255, 0.95);
+  color: var(--dark-gray);
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px var(--shadow);
+  width: 100%;
+  max-width: 700px;
   margin-bottom: 2rem;
 }
 
-.logo-container h1 {
-  font-family: 'Arial Narrow', sans-serif;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: var(--metal-gray);
-  margin: 0;
-  font-size: 1.8rem;
-}
-
-.logo-divider {
-  height: 2px;
-  background: linear-gradient(to right, var(--ferrari-red), var(--mechanic-blue));
-  width: 80px;
-  margin: 0.8rem auto;
-  border-radius: 2px;
-}
-
-.logo-container p {
-  color: #777;
-  font-size: 0.9rem;
-  margin-top: 0.5rem;
-}
-
-.login-form {
-  margin-bottom: 1.5rem;
-}
-
-.error-message {
-  background: #ffecec;
-  color: #e74c3c;
-  padding: 0.8rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-  border: 1px solid #ffcdd2;
-  font-size: 0.9rem;
+.worker-selection h2 {
   text-align: center;
+  margin-bottom: 2rem;
+  font-size: 1.6rem;
+  color: var(--accent-orange);
 }
 
+/* Grid de roles */
+.role-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  justify-items: center;
+}
+
+/* Botón circular */
+.role-circle {
+  background-color: var(--accent-orange);
+  color: var(--white);
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: 2px solid var(--black);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s, box-shadow 0.3s;
+  animation: fadeUp 0.6s ease forwards;
+}
+
+.role-circle:hover {
+  transform: scale(1.08);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+}
+
+.role-circle i {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .role-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .role-circle {
+    width: 110px;
+    height: 110px;
+    font-size: 0.8rem;
+  }
+
+  .role-circle i {
+    font-size: 1.6rem;
+  }
+
+  .logo-header h1 {
+    font-size: 2rem;
+  }
+}
+
+/* Responsive para pantallas pequeñas */
+@media (max-width: 600px) {
+  .role-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .role-circle {
+    width: 110px;
+    height: 110px;
+    font-size: 0.8rem;
+  }
+
+  .role-circle i {
+    font-size: 1.6rem;
+  }
+}
+
+
+/* Caja de login */
+.login-box {
+  background-color: var(--white);
+  color: var(--dark-gray);
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px var(--shadow);
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-box h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  color: var(--base-blue);
+}
+
+/* Inputs */
 .input-group {
   margin-bottom: 1.5rem;
 }
 
 .input-group label {
-  display: flex;
-  align-items: center;
+  display: block;
   margin-bottom: 0.5rem;
-  color: #555;
-  font-size: 0.9rem;
   font-weight: 600;
+  font-size: 0.95rem;
 }
 
 .input-group input {
   width: 100%;
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 1rem;
-  transition: all 0.3s;
+  transition: border-color 0.3s;
 }
 
 .input-group input:focus {
-  border-color: var(--mechanic-blue);
+  border-color: var(--accent-orange);
   outline: none;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
 }
 
-.input-group input:disabled {
-  background: #f8f9fa;
-  cursor: not-allowed;
-}
-
+/* Botón de login */
 .login-button {
   width: 100%;
   padding: 14px;
-  background: var(--ferrari-red);
-  color: white;
+  background-color: var(--accent-orange);
+  color: var(--white);
   border: none;
   border-radius: 6px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: background 0.3s;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
-.login-button:hover:not(:disabled) {
-  background: #c11f24;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(230, 36, 41, 0.3);
+.login-button:hover {
+  background-color: #ea580c;
 }
 
-.login-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.demo-section {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #eee;
+/* Animación de entrada */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Responsive */
 @media (max-width: 480px) {
-  .login-box {
-    width: 90%;
-    padding: 2rem 1.5rem;
-    margin: 1rem;
+  .logo-header h1 {
+    font-size: 1.6rem;
   }
-  
-  .logo-container h1 {
+
+  .worker-selection {
+    padding: 2rem;
+  }
+
+  .role-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.2rem;
+  }
+
+  .role-circle {
+    width: 100px;
+    height: 100px;
+    font-size: 0.75rem;
+  }
+
+  .role-circle i {
     font-size: 1.5rem;
   }
-  
-  .tuerca-gif {
-    width: 40px;
-    height: 40px;
+
+  .login-box {
+    padding: 2rem;
   }
+}
+
+.login-content {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
