@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from decouple import config
 from database import init_db
-from routers import auth, clientes, servicios, inventario, tickets, facturas
+from routers import auth, clientes, servicios, inventario, tickets, facturas, usuarios, roles
 
 # Crear la aplicación FastAPI
 app = FastAPI(
@@ -34,6 +34,8 @@ app.include_router(servicios.router, prefix="/api/v1", tags=["servicios"])
 app.include_router(inventario.router, prefix="/api/v1", tags=["inventario"])
 app.include_router(tickets.router, prefix="/api/v1", tags=["operaciones"])
 app.include_router(facturas.router, prefix="/api/v1", tags=["facturación"])
+app.include_router(usuarios.router, prefix="/api/v1", tags=["usuarios"])
+app.include_router(roles.router, prefix="/api/v1", tags=["roles"])
 
 # Evento de inicio de la aplicación
 @app.on_event("startup")

@@ -1,149 +1,151 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  FaPlus, 
-  FaEdit, 
-  FaTrash, 
-  FaUser, 
-  FaUserShield, 
-  FaUserCog,
-  FaSearch,
-  FaFilter,
-  FaKey,
-  FaEye,
-  FaEyeSlash
+  FaPlus, FaEdit, FaTrash, FaUser, 
+  FaSearch, FaFilter, FaKey, FaEye, FaEyeSlash 
 } from 'react-icons/fa';
 import userGif from '../assets/images/user.gif';
 import '../styles/users.css';
 
 const Users = () => {
+  const [users, setUsers] = useState([]);
+  const [roles, setRoles] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('todos');
 
-  // Datos de ejemplo
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      nombre: 'Juan Pérez',
-      email: 'juan@taller.com',
-      telefono: '1234-5678',
-      rol: 'administrador',
-      activo: true,
-      permisos: ['dashboard', 'clientes', 'vehiculos', 'agenda', 'inventario', 'facturacion']
-    },
-    {
-      id: 2,
-      nombre: 'María García',
-      email: 'maria@taller.com',
-      telefono: '8765-4321',
-      rol: 'mecanico',
-      activo: true,
-      permisos: ['dashboard', 'vehiculos', 'agenda']
-    },
-    {
-      id: 3,
-      nombre: 'Carlos López',
-      email: 'carlos@taller.com',
-      telefono: '5555-5555',
-      rol: 'recepcion',
-      activo: false,
-      permisos: ['dashboard', 'clientes', 'agenda', 'facturacion']
-    }
-  ]);
-
-  const roles = [
-    { value: 'administrador', label: 'Administrador', icon: <FaUserShield /> },
-    { value: 'mecanico', label: 'Mecánico', icon: <FaUserCog /> },
-    { value: 'recepcion', label: 'Recepción', icon: <FaUser /> }
-  ];
-
-  const modulos = [
-    { value: 'dashboard', label: 'Dashboard' },
-    { value: 'clientes', label: 'Clientes' },
-    { value: 'vehiculos', label: 'Vehículos' },
-    { value: 'agenda', label: 'Agenda' },
-    { value: 'inventario', label: 'Inventario' },
-    { value: 'facturacion', label: 'Facturación' },
-    { value: 'servicios', label: 'Servicios' },
-    { value: 'empleados', label: 'Empleados' }
-  ];
-
+  // 🔄 Abrir modal
   const openModal = (user = null) => {
     setEditingUser(user);
     setShowModal(true);
   };
 
-  const handleSubmit = (e) => {
+  // 🔄 Cargar usuarios y roles de la API real
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const resUsers = await fetch("http://localhost:8000/api/v1/usuarios");
+        const usersData = await resUsers.json();
+
+        const resRoles = await fetch("http://localhost:8000/api/v1/roles");
+        const rolesData = await resRoles.json();
+
+        // Normalizar roles para usar en el select
+        const rolesFormatted = rolesData.map(r => ({
+        value: r.id_rol,
+        label: r.nombre_rol,
+        }));
+
+
+        setUsers(usersData);
+        setRoles(rolesFormatted);
+      } catch (error) {
+        console.error("Error al cargar datos:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // 📝 Crear o editar usuario
+  async function handleSubmit(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
-    
     const userData = {
-      nombre: formData.get('nombre'),
-      email: formData.get('email'),
-      telefono: formData.get('telefono'),
-      rol: formData.get('rol'),
-      activo: formData.get('activo') === 'on',
-      permisos: Array.from(formData.getAll('permisos'))
+      username: formData.get('username'),
+      password: formData.get('password'),
+      id_rol: parseInt(formData.get('id_rol')),
+      id_empleado: formData.get('id_empleado') ? parseInt(formData.get('id_empleado')) : null
     };
 
-    if (editingUser) {
-      // Editar usuario existente
-      setUsers(users.map(user => 
-        user.id === editingUser.id 
-          ? { ...user, ...userData, id: user.id }
-          : user
-      ));
-    } else {
-      // Crear nuevo usuario
-      const newUser = {
-        ...userData,
-        id: Date.now(),
-        fechaCreacion: new Date().toISOString()
-      };
-      setUsers([...users, newUser]);
+    try {
+      if (editingUser) {
+        // PUT actualizar
+        const res = await fetch(`http://localhost:8000/api/v1/usuarios/${editingUser.id_usuario}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(userData)
+        });
+        const updated = await res.json();
+        setUsers(users.map(u => u.id_usuario === updated.id_usuario ? updated : u));
+      } else {
+        // POST crear
+        const res = await fetch("http://localhost:8000/api/v1/usuarios", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(userData)
+        });
+        const newUser = await res.json();
+        setUsers([...users, newUser]);
+      }
+    } catch (error) {
+      console.error('Error al guardar usuario:', error);
     }
 
     setShowModal(false);
     setEditingUser(null);
-  };
+  }
 
-  const deleteUser = (id) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar este usuario?')) {
-      setUsers(users.filter(user => user.id !== id));
+  // 🗑️ Eliminar usuario
+  const deleteUser = async (id_usuario) => {
+    if (window.confirm('¿Eliminar usuario?')) {
+      try {
+        await fetch(`http://localhost:8000/api/v1/usuarios/${id_usuario}`, {
+          method: "DELETE"
+        });
+        setUsers(users.filter(u => u.id_usuario !== id_usuario));
+      } catch (error) {
+        console.error("Error eliminando usuario:", error);
+      }
     }
   };
 
-  const toggleUserStatus = (id) => {
-    setUsers(users.map(user =>
-      user.id === id ? { ...user, activo: !user.activo } : user
-    ));
+  // 🔄 Activar/desactivar usuario
+  const toggleUserStatus = async (user) => {
+    const updated = { 
+      ...user, 
+      activo: !user.activo,
+      password: user.password || "temp123" // ⚠️ tu API pide password en PUT
+    };
+    try {
+      const res = await fetch(`http://localhost:8000/api/v1/usuarios/${user.id_usuario}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updated)
+      });
+      const data = await res.json();
+      setUsers(users.map(u => u.id_usuario === user.id_usuario ? data : u));
+    } catch (error) {
+      console.error("Error al cambiar estado:", error);
+    }
   };
 
+  // 🔍 Filtrar usuarios
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = filterRole === 'todos' || user.rol === filterRole;
+    const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = filterRole === 'todos' || user.id_rol === Number(filterRole);
     return matchesSearch && matchesRole;
   });
 
-  const getRolIcon = (rol) => {
-    const role = roles.find(r => r.value === rol);
-    return role ? role.icon : <FaUser />;
-  };
-
-  const getRolLabel = (rol) => {
-    const role = roles.find(r => r.value === rol);
-    return role ? role.label : rol;
-  };
+  if (loading) {
+    return (
+      <div className="users-module">
+        <div className="loading-state">
+          <FaUser size={48} />
+          <p>Cargando usuarios...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="users-module">
-      {/* Header */}
       <div className="users-header">
-        <img src={userGif} alt="User" className="user-gif" />
         <div className="header-top">
+          <img src={userGif} alt="User" className="user-gif" />
           <h1>GESTIÓN DE USUARIOS</h1>
           <div className="header-actions">
             <div className="search-box">
@@ -175,7 +177,6 @@ const Users = () => {
       </div>
 
       <div className="users-content">
-        {/* Botón de agregar usuario */}
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -185,7 +186,6 @@ const Users = () => {
           <FaPlus /> NUEVO USUARIO
         </motion.button>
 
-        {/* Lista de usuarios */}
         <div className="users-list">
           <AnimatePresence>
             {filteredUsers.length === 0 ? (
@@ -200,38 +200,24 @@ const Users = () => {
             ) : (
               filteredUsers.map(user => (
                 <motion.div
-                  key={user.id}
+                  key={user.id_usuario}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   className={`user-card ${user.activo ? 'activo' : 'inactivo'}`}
                 >
-                  <div className="user-avatar">
-                    {getRolIcon(user.rol)}
-                  </div>
-
                   <div className="user-info">
-                    <h3>{user.nombre}</h3>
-                    <p className="user-email">{user.email}</p>
-                    <p className="user-phone">{user.telefono}</p>
-                    <div className="user-rol">
-                      <span className={`rol-badge ${user.rol}`}>
-                        {getRolLabel(user.rol)}
-                      </span>
-                    </div>
-                    <div className="user-permisos">
-                      <span className="permisos-count">
-                        {user.permisos.length} módulos permitidos
-                      </span>
-                    </div>
+                    <h3>{user.username}</h3>
+                    <p>Rol: {roles.find(r => r.value === user.id_rol)?.label || "Sin rol"}</p>
+                    <p>Creado: {user.fecha_creacion || "N/A"}</p>
                   </div>
 
                   <div className="user-actions">
                     <motion.button
                       whileHover={{ scale: 1.1 }}
                       className="btn-status"
-                      onClick={() => toggleUserStatus(user.id)}
-                      title={user.activo ? 'Desactivar usuario' : 'Activar usuario'}
+                      onClick={() => toggleUserStatus(user)}
+                      title={user.activo ? 'Desactivar' : 'Activar'}
                     >
                       {user.activo ? <FaEye /> : <FaEyeSlash />}
                     </motion.button>
@@ -240,7 +226,7 @@ const Users = () => {
                       whileHover={{ scale: 1.1 }}
                       className="btn-edit"
                       onClick={() => openModal(user)}
-                      title="Editar usuario"
+                      title="Editar"
                     >
                       <FaEdit />
                     </motion.button>
@@ -248,8 +234,8 @@ const Users = () => {
                     <motion.button
                       whileHover={{ scale: 1.1 }}
                       className="btn-delete"
-                      onClick={() => deleteUser(user.id)}
-                      title="Eliminar usuario"
+                      onClick={() => deleteUser(user.id_usuario)}
+                      title="Eliminar"
                     >
                       <FaTrash />
                     </motion.button>
@@ -261,7 +247,7 @@ const Users = () => {
         </div>
       </div>
 
-      {/* Modal para agregar/editar usuario */}
+      {/* Modal */}
       <AnimatePresence>
         {showModal && (
           <motion.div
@@ -300,80 +286,40 @@ const Users = () => {
               <form onSubmit={handleSubmit} className="modal-form">
                 <div className="form-grid">
                   <div className="form-group">
-                    <label>Nombre completo *</label>
+                    <label>Username *</label>
                     <input
                       type="text"
-                      name="nombre"
-                      defaultValue={editingUser?.nombre}
+                      name="username"
+                      defaultValue={editingUser?.username}
                       required
-                      placeholder="Ej: Juan Pérez"
+                      placeholder="Ej: jperez"
                     />
                   </div>
 
                   <div className="form-group">
-                    <label>Email *</label>
+                    <label>Password *</label>
                     <input
-                      type="email"
-                      name="email"
-                      defaultValue={editingUser?.email}
-                      required
-                      placeholder="usuario@taller.com"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Teléfono</label>
-                    <input
-                      type="tel"
-                      name="telefono"
-                      defaultValue={editingUser?.telefono}
-                      placeholder="1234-5678"
+                      type="password"
+                      name="password"
+                      placeholder="••••••"
+                      required={!editingUser} // obligatorio solo al crear
                     />
                   </div>
 
                   <div className="form-group">
                     <label>Rol *</label>
                     <select 
-                      name="rol" 
-                      defaultValue={editingUser?.rol || 'mecanico'}
+                      name="id_rol" 
+                      defaultValue={editingUser?.id_rol || ''}
                       required
                     >
+                      <option value="">Seleccione un rol</option>
                       {roles.map(role => (
                         <option key={role.value} value={role.value}>
                           {role.label}
                         </option>
                       ))}
                     </select>
-                  </div>
-
-                  <div className="form-group full-width">
-                    <label>Permisos de módulos *</label>
-                    <div className="permisos-grid">
-                      {modulos.map(modulo => (
-                        <label key={modulo.value} className="checkbox-label">
-                          <input
-                            type="checkbox"
-                            name="permisos"
-                            value={modulo.value}
-                            defaultChecked={editingUser?.permisos?.includes(modulo.value)}
-                          />
-                          <span className="checkmark"></span>
-                          {modulo.label}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label className="checkbox-label">
-                      <input
-                        type="checkbox"
-                        name="activo"
-                        defaultChecked={editingUser?.activo ?? true}
-                      />
-                      <span className="checkmark"></span>
-                      Usuario activo
-                    </label>
                   </div>
                 </div>
 
@@ -407,3 +353,4 @@ const Users = () => {
 };
 
 export default Users;
+

@@ -19,6 +19,8 @@ import { useAuth } from '../context/AuthContext';
 import { getFilteredMenu } from '../utils/auth';
 import Agenda from './Agenda';
 import Users from './Users';
+import Facturacion from './Facturacion';
+import Empleados from './Empleados';
 import '../styles/dashboard.css';
 
 // Importa tu logo
@@ -325,8 +327,18 @@ const Dashboard = () => {
         {/* Mostrar Usuarios cuando esté seleccionada */}
         {activeTab === 'usuarios' && <Users />}
 
+        {/* Mostrar Facturación cuando esté seleccionada */}
+        {activeTab === 'facturacion' && <Facturacion />}
+
+        {/* Mostrar Empleados cuando esté seleccionada */}
+        {activeTab === 'empleados' && <Empleados />}
+
         {/* Otras pestañas pueden ir aquí */}
-        {activeTab !== 'inicio' && activeTab !== 'agenda' && activeTab !== 'usuarios' && (
+          {activeTab !== 'inicio' && 
+          activeTab !== 'agenda' && 
+          activeTab !== 'usuarios' &&
+          activeTab !== 'facturacion' &&
+          activeTab !== 'empleados' && (
           <motion.div 
             className="welcome-card"
             initial={{ opacity: 0 }}

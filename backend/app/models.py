@@ -83,15 +83,15 @@ class Empleado(Base):
 
 class Usuario(Base):
     __tablename__ = "usuarios"
-    
-    id_usuario = Column(Integer, primary_key=True, autoincrement=True)
+
+    id_usuario = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
-    id_empleado = Column(Integer, ForeignKey("empleados.id_empleado"), unique=True)
+    id_empleado = Column(Integer, nullable=True)
     id_rol = Column(Integer, ForeignKey("roles.id_rol"))
     activo = Column(Boolean, default=True)
-    ultimo_acceso = Column(TIMESTAMP)
-    fecha_creacion = Column(TIMESTAMP, server_default=func.current_timestamp())
+    ultimo_acceso = Column(DateTime, default=None)
+    fecha_creacion = Column(DateTime, default=datetime.utcnow)
     
     # Relaciones
     empleado = relationship("Empleado", back_populates="usuario")
