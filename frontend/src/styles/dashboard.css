@@ -55,6 +55,7 @@
   transition: all 0.3s ease;
 }
 
+<<<<<<< HEAD
 /* En tu dashboard.css, actualiza estas clases: */
 
 .logo-img {
@@ -94,14 +95,36 @@
 
 .logo-text {
   font-size: 1.4rem;
+=======
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  white-space: nowrap;
+  color: var(--pure-white) !important; /* MODIFICADO: Blanco en lugar de amarillo */
+>>>>>>> e90da652e0b5c974ba088230718fa39c4198bf5e
   font-weight: 600;
   color: var(--pure-white);
   letter-spacing: 0.3px;
 }
 
+<<<<<<< HEAD
 /* REMOVIENDO el botón de cerrar menú que no funciona */
 .sidebar-header {
   display: none; /* Oculta el header con el botón que no sirve */
+=======
+.menu-toggle {
+  background: transparent;
+  border: none;
+  color: var(--pure-white) !important; /* MODIFICADO: Blanco */
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  padding: 0.5rem;
+}
+
+.menu-toggle:hover {
+  color: var(--ferrari-yellow) !important; /* MODIFICADO: Amarillo al hover */
+>>>>>>> e90da652e0b5c974ba088230718fa39c4198bf5e
 }
 
 /* Navegación elegante */
@@ -114,8 +137,13 @@ nav {
 .nav-item {
   display: flex;
   align-items: center;
+<<<<<<< HEAD
   padding: 0.9rem 1.2rem;
   color: rgba(255, 255, 255, 0.85);
+=======
+  padding: 1rem 1.5rem;
+  color: var(--pure-white) !important; /* MODIFICADO: Blanco puro */
+>>>>>>> e90da652e0b5c974ba088230718fa39c4198bf5e
   text-decoration: none;
   font-weight: 500;
   cursor: pointer;
@@ -128,6 +156,7 @@ nav {
 }
 
 .nav-item.active {
+<<<<<<< HEAD
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.2);
   color: var(--pure-white);
@@ -138,6 +167,16 @@ nav {
   background: rgba(255, 255, 255, 0.08);
   color: var(--pure-white);
   transform: translateX(3px);
+=======
+  background: rgba(230, 36, 41, 0.3) !important; /* MODIFICADO: Rojo más suave */
+  border-left: 3px solid var(--ferrari-red);
+  color: var(--pure-white) !important; /* MODIFICADO: Blanco */
+}
+
+.nav-item:hover:not(.active) {
+  color: var(--pure-white) !important; /* MODIFICADO: Blanco */
+  background: rgba(255, 255, 255, 0.1) !important; /* MODIFICADO: Fondo más suave */
+>>>>>>> e90da652e0b5c974ba088230718fa39c4198bf5e
 }
 
 .icon {
@@ -147,17 +186,34 @@ nav {
   display: flex;
   align-items: center;
   justify-content: center;
+<<<<<<< HEAD
   color: rgba(255, 255, 255, 0.9);
 }
 
 .nav-item.active .icon {
   color: var(--pure-white);
+=======
+  color: var(--pure-white) !important; /* MODIFICADO: Íconos blancos */
+}
+
+.nav-item:hover:not(.active) .icon {
+  color: var(--ferrari-yellow) !important; /* MODIFICADO: Íconos amarillos en hover */
+}
+
+.nav-item.active .icon {
+  color: var(--pure-white) !important; /* MODIFICADO: Íconos blancos en activo */
+>>>>>>> e90da652e0b5c974ba088230718fa39c4198bf5e
 }
 
 .nav-text {
   white-space: nowrap;
+<<<<<<< HEAD
   font-size: 0.93rem;
   color: inherit;
+=======
+  font-size: 0.95rem;
+  color: var(--pure-white) !important; /* MODIFICADO: Texto blanco */
+>>>>>>> e90da652e0b5c974ba088230718fa39c4198bf5e
   font-weight: 500;
 }
 
@@ -451,6 +507,7 @@ nav {
 }
 
 ::-webkit-scrollbar-thumb:hover {
+<<<<<<< HEAD
   background: var(--accent-orange);
 }
 
@@ -535,3 +592,7 @@ nav {
 .black-bg { border-color: var(--dark-gray); color: var(--dark-gray); }
 .gray-bg { border-color: var(--light-gray); color: var(--text-dark); }
 .yellow-bg { border-color: var(--warning-orange); color: var(--text-dark); }
+=======
+  background: #555;
+}
+>>>>>>> e90da652e0b5c974ba088230718fa39c4198bf5e

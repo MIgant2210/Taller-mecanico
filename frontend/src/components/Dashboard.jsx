@@ -9,11 +9,7 @@ import {
   FaUserCircle,
   FaCalendarAlt,
   FaWrench,
-  FaChartLine,
-  FaBox,
-  FaUserTie,
-  FaUserShield,
-  FaSignOutAlt
+  FaChartLine
 } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import { getFilteredMenu } from '../utils/auth';
@@ -138,7 +134,14 @@ const Dashboard = () => {
         </div>
         
         <nav>
-          {filteredMenu.map((item) => (
+          {[
+            { name: 'Inicio', icon: <FaChartLine />, tab: 'inicio' },
+            { name: 'Clientes', icon: <FaUsers />, tab: 'clientes' },
+            { name: 'Vehículos', icon: <FaCar />, tab: 'vehiculos' },
+            { name: 'Reparaciones', icon: <FaTools />, tab: 'reparaciones' },
+            { name: 'Facturación', icon: <FaFileInvoiceDollar />, tab: 'facturacion' },
+            { name: 'Calendario', icon: <FaCalendarAlt />, tab: 'calendario' }
+          ].map((item) => (
             <motion.div
               key={item.name}
               whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
@@ -189,46 +192,22 @@ const Dashboard = () => {
       </motion.div>
 
       {/* Contenido Principal */}
-      <div className={`main-content ${activeTab === 'agenda' || activeTab === 'usuarios' ? 'agenda-active' : ''}`}>
-        
-        {/* Header SOLO para pestañas que NO son Agenda ni Usuarios */}
-        {activeTab !== 'agenda' && activeTab !== 'usuarios' && (
-          <header className="dashboard-header">
-            <h1>
-              {activeTab === 'inicio' && 'PANEL DE CONTROL'}
-              {activeTab === 'clientes' && 'GESTIÓN DE CLIENTES'}
-              {activeTab === 'vehiculos' && 'GESTIÓN DE VEHÍCULOS'}
-              {activeTab === 'inventario' && 'INVENTARIO'}
-              {activeTab === 'servicios' && 'SERVICIOS'}
-              {activeTab === 'facturacion' && 'FACTURACIÓN'}
-              {activeTab === 'empleados' && 'GESTIÓN DE EMPLEADOS'}
-            </h1>
-            <div className="header-actions">
-              {/* Botón de campanita que va a Agenda */}
-              <motion.button 
-                className="icon-button"
-                onClick={goToAgenda}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                title="Ir a Agenda"
-              >
-                <FaBell />
-                <span className="notification-badge">3</span>
-              </motion.button>
-              
-              {/* Botón de usuario que va a Usuarios */}
-              <motion.button 
-                className="icon-button"
-                onClick={goToUsers}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                title="Ir a Usuarios"
-              >
-                <FaUserCircle />
-              </motion.button>
-            </div>
-          </header>
-        )}
+      <div className="main-content">
+        <header className="dashboard-header">
+          <h1>
+            {activeTab === 'inicio' && 'PANEL DE CONTROL'}
+            {activeTab === 'clientes' && 'GESTIÓN DE CLIENTES'}
+            {/* Agrega más títulos según tabs */}
+          </h1>
+          <div className="header-actions">
+            <button className="icon-button">
+              <FaBell />
+            </button>
+            <button className="icon-button">
+              <FaUserCircle />
+            </button>
+          </div>
+        </header>
 
         {/* Contenido por Tabs */}
         {activeTab === 'inicio' && (
@@ -334,21 +313,6 @@ const Dashboard = () => {
         {activeTab === 'empleados' && <Empleados />}
 
         {/* Otras pestañas pueden ir aquí */}
-          {activeTab !== 'inicio' && 
-          activeTab !== 'agenda' && 
-          activeTab !== 'usuarios' &&
-          activeTab !== 'facturacion' &&
-          activeTab !== 'empleados' && (
-          <motion.div 
-            className="welcome-card"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <h3>Módulo en Desarrollo</h3>
-            <p>La sección de {activeTab} está actualmente en desarrollo.</p>
-            <p>Disponible para: <strong>{currentUser?.rol}</strong></p>
-          </motion.div>
-        )}
       </div>
     </div>
   );
