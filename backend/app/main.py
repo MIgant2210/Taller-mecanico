@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from decouple import config
 from database import init_db
-from routers import auth, clientes, servicios, inventario, tickets, facturas, usuarios, roles
+from routers import auth, clientes, servicios, inventario, tickets, facturas
 
 # Crear la aplicación FastAPI
 app = FastAPI(
@@ -14,18 +14,28 @@ app = FastAPI(
 )
 
 # Configurar CORS
-allowed_origins = config('ALLOWED_HOSTS', default='["http://localhost:3000"]')
+allowed_origins = ["http://localhost:5173"]
+#allowed_origins = config('ALLOWED_HOSTS', default='["http://localhost:5173"]')
 if isinstance(allowed_origins, str):
     import json
     allowed_origins = json.loads(allowed_origins)
 
+# Configuración CORS ULTRA-PERMISIVA (solo para desarrollo)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=["*"],  # Permitir TODOS los orígenes
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
+
+#app.add_middleware(
+#    CORSMiddleware,
+#    allow_origins=allowed_origins,
+#    allow_credentials=True,
+#    allow_methods=["GET", "POST", "PUT", "DELETE"],
+#    allow_headers=["*"],
+#)
 
 # Incluir todos los routers
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["autenticación"])
@@ -34,8 +44,6 @@ app.include_router(servicios.router, prefix="/api/v1", tags=["servicios"])
 app.include_router(inventario.router, prefix="/api/v1", tags=["inventario"])
 app.include_router(tickets.router, prefix="/api/v1", tags=["operaciones"])
 app.include_router(facturas.router, prefix="/api/v1", tags=["facturación"])
-app.include_router(usuarios.router, prefix="/api/v1", tags=["usuarios"])
-app.include_router(roles.router, prefix="/api/v1", tags=["roles"])
 
 # Evento de inicio de la aplicación
 @app.on_event("startup")

@@ -73,7 +73,7 @@ class PuestoResponse(PuestoBase):
 class EmpleadoBase(BaseModel):
     nombres: str
     apellidos: str
-    cedula: str
+    dpi: str
     telefono: Optional[str] = None
     email: Optional[str] = None
     direccion: Optional[str] = None
@@ -130,7 +130,7 @@ class TokenResponse(BaseModel):
 class ClienteBase(BaseModel):
     nombres: str
     apellidos: str
-    cedula: Optional[str] = None
+    dpi: Optional[str] = None
     telefono: str
     email: Optional[str] = None
     direccion: Optional[str] = None
@@ -141,7 +141,7 @@ class ClienteCreate(ClienteBase):
 class ClienteUpdate(BaseModel):
     nombres: Optional[str] = None
     apellidos: Optional[str] = None
-    cedula: Optional[str] = None
+    dpi: Optional[str] = None
     telefono: Optional[str] = None
     email: Optional[str] = None
     direccion: Optional[str] = None
@@ -272,6 +272,8 @@ class RepuestoUpdate(BaseModel):
     stock_minimo: Optional[int] = None
     ubicacion_almacen: Optional[str] = None
     activo: Optional[bool] = None
+    id_categoria_repuesto: Optional[int] = None
+    id_proveedor: Optional[int] = None
 
 class RepuestoResponse(RepuestoBase):
     id_repuesto: int

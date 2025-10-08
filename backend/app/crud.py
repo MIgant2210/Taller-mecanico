@@ -83,7 +83,7 @@ def get_clientes(db: Session, skip: int = 0, limit: int = 100, search: str = Non
             or_(
                 models.Cliente.nombres.contains(search),
                 models.Cliente.apellidos.contains(search),
-                models.Cliente.cedula.contains(search),
+                models.Cliente.dpi.contains(search),
                 models.Cliente.telefono.contains(search)
             )
         )

@@ -62,7 +62,7 @@ class Empleado(Base):
     id_empleado = Column(Integer, primary_key=True, autoincrement=True)
     nombres = Column(String(100), nullable=False)
     apellidos = Column(String(100), nullable=False)
-    cedula = Column(String(20), unique=True, nullable=False)
+    dpi = Column(String(20), unique=True, nullable=False)
     telefono = Column(String(15))
     email = Column(String(100))
     direccion = Column(Text)
@@ -83,15 +83,15 @@ class Empleado(Base):
 
 class Usuario(Base):
     __tablename__ = "usuarios"
-
-    id_usuario = Column(Integer, primary_key=True, index=True)
+    
+    id_usuario = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String(50), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
-    id_empleado = Column(Integer, nullable=True)
+    id_empleado = Column(Integer, ForeignKey("empleados.id_empleado"), unique=True)
     id_rol = Column(Integer, ForeignKey("roles.id_rol"))
     activo = Column(Boolean, default=True)
-    ultimo_acceso = Column(DateTime, default=None)
-    fecha_creacion = Column(DateTime, default=datetime.utcnow)
+    ultimo_acceso = Column(TIMESTAMP)
+    fecha_creacion = Column(TIMESTAMP, server_default=func.current_timestamp())
     
     # Relaciones
     empleado = relationship("Empleado", back_populates="usuario")
@@ -107,7 +107,7 @@ class Cliente(Base):
     id_cliente = Column(Integer, primary_key=True, autoincrement=True)
     nombres = Column(String(100), nullable=False)
     apellidos = Column(String(100), nullable=False)
-    cedula = Column(String(20), unique=True)
+    dpi = Column(String(20), unique=True)
     telefono = Column(String(15), nullable=False)
     email = Column(String(100))
     direccion = Column(Text)
