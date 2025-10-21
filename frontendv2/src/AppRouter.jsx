@@ -12,6 +12,7 @@ import Tickets from './pages/Tickets';
 import Invoices from './pages/Invoices';
 import Admin from './pages/Admin';
 import Cotizaciones from './pages/Cotizaciones';
+import Reportes from './pages/Reportes';
 
 // Componente para rutas protegidas
 const ProtectedRoute = ({ children }) => {
@@ -156,6 +157,19 @@ const AppRouter = () => {
             </ProtectedRoute>
           } 
         />
+
+        <Route 
+          path="/reportes" 
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Reportes />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Ruta por defecto para páginas no encontradas */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>

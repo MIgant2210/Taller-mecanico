@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import Optional
+from datetime import date
 from database import get_db
 from auth import get_current_active_user, require_admin_or_jefe
 import schemas
@@ -215,13 +216,15 @@ def get_stock_bajo(
 @router.get("/movimientos-inventario", response_model=list[schemas.MovimientoInventarioResponse])
 def get_movimientos_inventario(
     repuesto_id: Optional[int] = Query(None, description="Filtrar por repuesto"),
+    fecha_inicio: Optional[date] = Query(None, description="Fecha inicio (YYYY-MM-DD)"),
+    fecha_fin: Optional[date] = Query(None, description="Fecha fin (YYYY-MM-DD)"),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     db: Session = Depends(get_db),
     current_user: schemas.UsuarioResponse = Depends(get_current_active_user)
 ):
-    """Obtener historial de movimientos de inventario"""
-    return crud.get_movimientos_inventario(db, repuesto_id=repuesto_id, skip=skip, limit=limit)
+    """Obtener historial de movimientos de inventario. Se pueden filtrar por repuesto y rango de fechas."""
+    return crud.get_movimientos_inventario(db, repuesto_id=repuesto_id, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin, skip=skip, limit=limit)
 
 @router.get("/tipos-movimiento", response_model=list[schemas.TipoMovimientoInventarioResponse])
 def get_tipos_movimiento(

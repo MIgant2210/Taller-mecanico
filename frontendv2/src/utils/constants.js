@@ -89,5 +89,7 @@ export const NAVIGATION = [
   { path: '/tickets', name: 'Tickets', icon: Ticket, roles: ['Administrador', 'Jefe de Taller', 'Mecánico', 'Recepcionista'] },
   { path: '/invoices', name: 'Facturas', icon: FileText, roles: ['Administrador', 'Jefe de Taller', 'Recepcionista'] },
   { path: '/cotizaciones', name: 'Cotizaciones', icon: FileSpreadsheet, roles: ['Administrador', 'Jefe de Taller', 'Recepcionista'] },
+  { path: '/reportes', name: 'Reportes', icon: FileSpreadsheet, roles: ['Administrador', 'Jefe de Taller'] }, // 👈 NUEVO ÍTEM
   { path: '/admin', name: 'Administración', icon: Settings, roles: ['Administrador'] }
 ];
+

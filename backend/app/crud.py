@@ -600,7 +600,7 @@ def get_estadisticas_generales(db: Session):
 def get_tipos_movimiento(db: Session):
     return db.query(models.TipoMovimientoInventario).all()
 
-def get_movimientos_inventario(db: Session, repuesto_id: int = None, skip: int = 0, limit: int = 100):
+def get_movimientos_inventario(db: Session, repuesto_id: int = None, fecha_inicio: date = None, fecha_fin: date = None, skip: int = 0, limit: int = 100):
     query = db.query(models.MovimientoInventario).options(
         joinedload(models.MovimientoInventario.repuesto),
         joinedload(models.MovimientoInventario.tipo_movimiento),
@@ -609,6 +609,12 @@ def get_movimientos_inventario(db: Session, repuesto_id: int = None, skip: int =
     
     if repuesto_id:
         query = query.filter(models.MovimientoInventario.id_repuesto == repuesto_id)
+
+    # Filtrar por rango de fechas (fecha_movimiento)
+    if fecha_inicio:
+        query = query.filter(func.date(models.MovimientoInventario.fecha_movimiento) >= fecha_inicio)
+    if fecha_fin:
+        query = query.filter(func.date(models.MovimientoInventario.fecha_movimiento) <= fecha_fin)
     
     return query.order_by(models.MovimientoInventario.fecha_movimiento.desc()).offset(skip).limit(limit).all()
 
