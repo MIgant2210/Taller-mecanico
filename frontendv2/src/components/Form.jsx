@@ -2,8 +2,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { createPortal } from 'react-dom';
 import { useForm } from '../hooks/useForm';
 import { Save, X, Loader2, AlertCircle, Calendar, Hash, Type, Mail, Phone, MapPin, FileText, User, Percent, Eye, Check, ChevronDown } from 'lucide-react';
+import { clientsService, servicesService, inventoryService } from '../services/api';
 import './DatePicker.css';
 
 const Form = ({
@@ -23,16 +25,47 @@ const Form = ({
   const [clients, setClients] = useState([]);
   const [servicios, setServicios] = useState([]);
   const [repuestos, setRepuestos] = useState([]);
+  const [extraOptions, setExtraOptions] = useState({}); // opciones cargadas dinámicamente por nombre de campo
   const [showItemsPanel, setShowItemsPanel] = useState(false);
   const [fieldValidations, setFieldValidations] = useState({});
   const [openDropdowns, setOpenDropdowns] = useState({});
   const [formStatus, setFormStatus] = useState(null); // { type: 'success'|'error', message }
+  const [disabledSubmit, setDisabledSubmit] = useState(false);
 
   useEffect(() => {
-    if (cotizacionMode) {
-      // Cargar datos para cotizaciones
+    // Auto-cargar opciones dinámicas si el formulario las requiere y no vienen en fields
+    const needsClients = fields.some(f => /cliente|clientes|id_cliente/i.test(f.name) && (!f.options || f.options.length === 0));
+    const needsServicios = fields.some(f => /servicio|servicios|id_servicio/i.test(f.name) && (!f.options || f.options.length === 0));
+    const needsRepuestos = fields.some(f => /repuesto|repuestos|id_repuesto/i.test(f.name) && (!f.options || f.options.length === 0));
+
+    if (needsClients && clients.length === 0) {
+      clientsService.getClients().then(res => {
+        const list = res.data || [];
+        const opts = list.map(c => ({ value: c.id_cliente, label: `${c.nombres} ${c.apellidos}` }));
+        setClients(list);
+        setExtraOptions(prev => ({ ...prev, id_cliente: opts }));
+      }).catch(() => {});
     }
-  }, [cotizacionMode]);
+
+    if (needsServicios && servicios.length === 0) {
+      Promise.all([servicesService.getServices(), servicesService.getCategories()]).then(([svcRes, catRes]) => {
+        const servicesList = svcRes.data || [];
+        const cats = (catRes.data || []).reduce((acc, c) => (acc[c.id_categoria] = c.nombre_categoria, acc), {});
+        const opts = servicesList.map(s => ({ value: s.id_servicio, label: s.nombre_servicio, category: cats[s.id_categoria] || 'Sin categoría' }));
+        setServicios(servicesList);
+        setExtraOptions(prev => ({ ...prev, id_servicio: opts }));
+      }).catch(() => {});
+    }
+
+    if (needsRepuestos && repuestos.length === 0) {
+      inventoryService.getParts().then(res => {
+        const parts = res.data || [];
+        const opts = parts.map(p => ({ value: p.id_repuesto, label: `${p.nombre_repuesto} (Stock: ${p.stock_actual})`, category: p.categoria_nombre || 'Sin categoría' }));
+        setRepuestos(parts);
+        setExtraOptions(prev => ({ ...prev, id_repuesto: opts }));
+      }).catch(() => {});
+    }
+  }, [fields, cotizacionMode]);
 
   // Validación en tiempo real
   const validateField = (field, value) => {
@@ -112,6 +145,20 @@ const Form = ({
 
     handleChange(name, value);
     
+    // Si se cambia el cliente y ya existía un vehículo seleccionado, limpiar el vehículo
+    // si éste no pertenece al nuevo cliente (evita el 400 del backend).
+    if (name === 'id_cliente') {
+      const vehicleField = fields.find(f => f.name === 'id_vehiculo');
+      const currentVehicle = formData['id_vehiculo'];
+      if (currentVehicle && vehicleField?.options) {
+        const opt = vehicleField.options.find(o => String(o.value) === String(currentVehicle));
+        if (opt && String(opt.clienteId) !== String(value)) {
+          handleChange('id_vehiculo', '');
+          setFieldValidations(prev => ({ ...prev, id_vehiculo: null }));
+        }
+      }
+    }
+    
     if (field) {
       const error = validateField(field, value);
       setFieldValidations(prev => ({ ...prev, [name]: error }));
@@ -168,10 +215,18 @@ const Form = ({
           name={field.name}
           selected={selectedDate}
           onChange={date => {
-            const dateValue = date ? date.toISOString().slice(0, 10) : '';
+            if (!date) {
+              handleFieldChange(field.name, '');
+              return;
+            }
+            const dateValue = field.type === 'datetime' ? date.toISOString() : date.toISOString().slice(0, 10);
             handleFieldChange(field.name, dateValue);
           }}
-          dateFormat="dd/MM/yyyy"
+          showTimeSelect={field.type === 'datetime'}
+          timeIntervals={15}
+          timeCaption="Hora"
+          dateFormat={field.type === 'datetime' ? 'dd/MM/yyyy HH:mm' : 'dd/MM/yyyy'}
+          popperContainer={({ children }) => createPortal(children, document.body)}
           className={`w-full px-4 py-3 pl-11 pr-10 border rounded-xl transition-all duration-200 
             focus:outline-none focus:ring-2 focus:border-transparent 
             disabled:bg-gray-100 disabled:cursor-not-allowed bg-white cursor-pointer
@@ -379,7 +434,15 @@ const Form = ({
           const selectedOption = field.options?.find(opt => opt.value === formData[field.name]);
           const searchTerm = formData[`${field.name}_search`] || '';
           
-          const filteredOptions = field.options?.filter(opt => 
+          // Build base options; allow fields to include metadata (e.g. clienteId on vehicle options)
+          let baseOptions = field.options || extraOptions[field.name] || [];
+          // If we're rendering vehicle select and a client is selected in the form, show only that client's vehicles
+          const selectedClientId = formData['id_cliente'];
+          if (field.name === 'id_vehiculo' && selectedClientId) {
+            baseOptions = baseOptions.filter(o => String(o.clienteId) === String(selectedClientId));
+          }
+
+          const filteredOptions = baseOptions.filter(opt => 
             opt.label.toLowerCase().includes(searchTerm.toLowerCase())
           ) || [];
 
@@ -429,34 +492,58 @@ const Form = ({
               {isOpen && (
                 <div className="modern-dropdown">
                   {filteredOptions.length > 0 ? (
-                    filteredOptions.map(option => (
-                      <div
-                        key={option.value}
-                        className={`dropdown-option ${formData[field.name] === option.value ? 'selected' : ''}`}
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                        }}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleFieldChange(field.name, option.value);
-                          handleFieldChange(`${field.name}_search`, option.label);
-                          setOpenDropdowns(prev => ({ ...prev, [field.name]: false }));
-                        }}
-                      >
-                        {formData[field.name] === option.value && (
-                          <div className="option-check">
-                            <Check className="w-4 h-4" />
-                          </div>
-                        )}
-                        <span>{option.label}</span>
-                      </div>
+                    // Si las opciones tienen campo 'category', agruparlas por categoría
+                    (filteredOptions.some(o => o.category) ? (
+                      Object.entries(filteredOptions.reduce((acc, o) => {
+                        const cat = o.category || 'Sin categoría';
+                        acc[cat] = acc[cat] || [];
+                        acc[cat].push(o);
+                        return acc;
+                      }, {})).map(([cat, opts]) => (
+                        <div key={cat} className="dropdown-group">
+                          <div className="dropdown-group-title">{cat}</div>
+                          {opts.map(option => (
+                            <div
+                              key={option.value}
+                              className={`dropdown-option ${String(formData[field.name]) === String(option.value) ? 'selected' : ''}`}
+                              onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                              onClick={(e) => {
+                                e.preventDefault(); e.stopPropagation();
+                                handleFieldChange(field.name, option.value);
+                                handleFieldChange(`${field.name}_search`, option.label);
+                                setOpenDropdowns(prev => ({ ...prev, [field.name]: false }));
+                              }}
+                            >
+                              {String(formData[field.name]) === String(option.value) && (
+                                <div className="option-check"><Check className="w-4 h-4" /></div>
+                              )}
+                              <span>{option.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ))
+                    ) : (
+                      filteredOptions.map(option => (
+                        <div
+                          key={option.value}
+                          className={`dropdown-option ${String(formData[field.name]) === String(option.value) ? 'selected' : ''}`}
+                          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                          onClick={(e) => {
+                            e.preventDefault(); e.stopPropagation();
+                            handleFieldChange(field.name, option.value);
+                            handleFieldChange(`${field.name}_search`, option.label);
+                            setOpenDropdowns(prev => ({ ...prev, [field.name]: false }));
+                          }}
+                        >
+                          {String(formData[field.name]) === String(option.value) && (
+                            <div className="option-check"><Check className="w-4 h-4" /></div>
+                          )}
+                          <span>{option.label}</span>
+                        </div>
+                      ))
                     ))
                   ) : (
-                    <div className="dropdown-empty">
-                      No se encontraron resultados
-                    </div>
+                    <div className="dropdown-empty">No se encontraron resultados</div>
                   )}
                 </div>
               )}
@@ -660,11 +747,18 @@ const Form = ({
         fields.forEach(f => {
           if (f.type === 'select' && f.options) {
             const val = formData[f.name];
-            if (val && !f.options.some(o => o.value === val)) {
-              setFieldError(f.name, 'Seleccione una opción válida');
-              setFieldValidations(prev => ({ ...prev, [f.name]: 'Seleccione una opción válida' }));
-              valid = false;
-            }
+                if (val) {
+                  // Determine visible options for validation (apply same filtering as the select)
+                  let validOptions = f.options || [];
+                  if (f.name === 'id_vehiculo' && formData['id_cliente']) {
+                    validOptions = validOptions.filter(o => String(o.clienteId) === String(formData['id_cliente']));
+                  }
+                  if (!validOptions.some(o => String(o.value) === String(val))) {
+                    setFieldError(f.name, 'Seleccione una opción válida');
+                    setFieldValidations(prev => ({ ...prev, [f.name]: 'Seleccione una opción válida' }));
+                    valid = false;
+                  }
+                }
             if (f.required && !val) {
               setFieldError(f.name, `${f.label} es requerido`);
               setFieldValidations(prev => ({ ...prev, [f.name]: `${f.label} es requerido` }));
@@ -680,6 +774,20 @@ const Form = ({
 
         if (!valid) {
           e.preventDefault();
+          setFormStatus({ type: 'error', message: 'Por favor corrige los errores del formulario' });
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+
+        // Ejecutar validación completa antes de enviar (además de las comprobaciones anteriores)
+        const newFieldErrors = {};
+        fields.forEach(f => {
+          const err = validateField(f, formData[f.name]);
+          if (err) newFieldErrors[f.name] = err;
+        });
+        if (Object.keys(newFieldErrors).length > 0) {
+          e.preventDefault();
+          setFieldValidations(prev => ({ ...prev, ...newFieldErrors }));
           setFormStatus({ type: 'error', message: 'Por favor corrige los errores del formulario' });
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return;
@@ -778,7 +886,7 @@ const Form = ({
             
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || Object.values(fieldValidations).some(Boolean)}
               className="flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-emerald-800 hover:shadow-lg hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               {loading ? (

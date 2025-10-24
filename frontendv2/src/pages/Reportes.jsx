@@ -10,6 +10,13 @@ import {
   AlertCircle
 } from 'lucide-react';
 import InventoryReport from '../reports/InventoryReport';
+import MovementReport from '../reports/MovementReport';
+import ClientMonthlyReport from '../reports/ClientMonthlyReport';
+import ServiceReport from '../reports/ServiceReport';
+import FinanceReport from '../reports/FinanceReport';
+import TopServicesReport from '../reports/TopServicesReport';
+import TopPartsReport from '../reports/TopPartsReport';
+import GeneralStatsReport from '../reports/GeneralStatsReport';
 import Layout from '../components/Layout';
 
 const reportOptions = [
@@ -29,7 +36,7 @@ const reportOptions = [
     icon: TrendingUp,
     color: 'from-emerald-500 to-emerald-600',
     bgColor: 'from-emerald-50 to-emerald-100',
-    component: null
+    component: MovementReport
   },
   {
     key: 'clients',
@@ -38,7 +45,7 @@ const reportOptions = [
     icon: Users,
     color: 'from-purple-500 to-purple-600',
     bgColor: 'from-purple-50 to-purple-100',
-    component: null
+    component: ClientMonthlyReport
   },
   {
     key: 'services',
@@ -47,7 +54,7 @@ const reportOptions = [
     icon: Wrench,
     color: 'from-orange-500 to-orange-600',
     bgColor: 'from-orange-50 to-orange-100',
-    component: null
+    component: ServiceReport
   },
   {
     key: 'finance',
@@ -56,8 +63,35 @@ const reportOptions = [
     icon: DollarSign,
     color: 'from-green-500 to-green-600',
     bgColor: 'from-green-50 to-green-100',
-    component: null
-  }
+    component: FinanceReport
+  },
+  {
+  key: 'top-services',
+  title: 'Top Servicios',
+  description: 'Servicios más utilizados en el taller',
+  icon: Wrench,
+  color: 'from-pink-500 to-pink-600',
+  bgColor: 'from-pink-50 to-pink-100',
+  component: TopServicesReport
+},
+{
+  key: 'top-parts',
+  title: 'Top Repuestos',
+  description: 'Repuestos más utilizados en el sistema',
+  icon: Package,
+  color: 'from-yellow-500 to-yellow-600',
+  bgColor: 'from-yellow-50 to-yellow-100',
+  component: TopPartsReport
+},
+{
+  key: 'general-stats',
+  title: 'Estadísticas Generales',
+  description: 'Resumen de KPIs del sistema',
+  icon: FileBarChart,
+  color: 'from-gray-500 to-gray-600',
+  bgColor: 'from-gray-50 to-gray-100',
+  component: GeneralStatsReport
+}
 ];
 
 const ComingSoonPlaceholder = ({ title }) => (

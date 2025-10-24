@@ -19,9 +19,21 @@ const Inventory = () => {
 
   useEffect(() => {
     loadData();
-    if (activeTab === 'parts') {
-      loadSuppliers();
-    }
+    // Cargar categorías y proveedores en background para que los formularios tengan opciones
+    const preload = async () => {
+      try {
+        const [catsRes, suppliersRes] = await Promise.all([
+          api.get('/categorias-repuestos'),
+          api.get('/proveedores')
+        ]);
+        setCategories(catsRes.data);
+        // setSuppliers solo si aún vacío (evitar sobrescribir filtro de activeTab)
+        if (!suppliers || suppliers.length === 0) setSuppliers(suppliersRes.data);
+      } catch (err) {
+        console.error('Error preloading inventory data:', err);
+      }
+    };
+    preload();
   }, [activeTab]);
 
   const loadData = async () => {

@@ -15,6 +15,17 @@ const Services = () => {
 
   useEffect(() => {
     loadData();
+    // Cargar categorías en background para que el select de categoría en el formulario
+    // muestre opciones aunque estemos en la pestaña 'services'
+    const loadCategoriesAlways = async () => {
+      try {
+        const res = await api.get('/categorias-servicios');
+        setCategories(res.data);
+      } catch (err) {
+        console.error('Error loading categories:', err);
+      }
+    };
+    loadCategoriesAlways();
   }, [activeTab]);
 
   const loadData = async () => {

@@ -185,9 +185,11 @@ const Appointments = () => {
         const config = getStatusConfig(value);
         const StatusIcon = config.icon;
         return (
-          <div className="flex items-center gap-2">
-            <StatusIcon className={`w-5 h-5 ${config.iconColor}`} />
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${config.color}`}>
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-md ${config.color.replace('bg-', 'bg-')} shadow-sm`}>
+              <StatusIcon className={`${config.iconColor} w-4 h-4`} />
+            </div>
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold border ${config.color} bg-white/40`}> 
               {config.label}
             </span>
           </div>
@@ -201,7 +203,8 @@ const Appointments = () => {
       options: clients.map(c => ({ value: c.id_cliente, label: `${c.nombres} ${c.apellidos}` }))
     },
     { name: 'id_vehiculo', label: 'Vehículo', type: 'select', required: true,
-      options: vehicles.map(v => ({ value: v.id_vehiculo, label: `${v.marca} ${v.modelo} - ${v.placa}` }))
+      // Incluimos clienteId para poder filtrar los vehículos por cliente en el componente Form
+      options: vehicles.map(v => ({ value: v.id_vehiculo, label: `${v.marca} ${v.modelo} - ${v.placa}`, clienteId: v.id_cliente }))
     },
     { name: 'fecha_cita', label: 'Fecha y Hora', type: 'datetime', required: true },
     { name: 'id_empleado_asignado', label: 'Mecánico Asignado', type: 'select',
