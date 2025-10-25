@@ -16,22 +16,30 @@ const MovementReport = () => {
 
   const fetchMovements = async () => {
     setLoading(true);
+    setError(null);
     try {
+      // Validar que la fecha final no sea menor que la fecha inicial
+      if (fechaInicio && fechaFin && fechaFin < fechaInicio) {
+        setError('La fecha final no puede ser menor que la fecha inicial');
+        setData([]);
+        return;
+      }
+
       const params = {};
-      if (tipo) params.tipo = tipo;
+      // Modificar los datos para que coincidan con lo que espera el backend
+      if (tipo) params.tipo_movimiento = tipo === 'entrada' ? 1 : 2;
       if (fechaInicio) params.fecha_inicio = fechaInicio;
       if (fechaFin) params.fecha_fin = fechaFin;
 
       const res = await inventoryService.getMovements(params);
        const movementData = (res.data || []).map(movement => ({
          ...movement,
-         tipo: movement.tipo_movimiento?.tipo || 'N/A',
+         tipo: movement.tipo_movimiento?.id === 1 ? 'entrada' : 'salida',
          fecha: movement.fecha_movimiento,
          descripcion: movement.observaciones || 'Sin observaciones',
          repuesto: movement.repuesto,
-         // nombre de repuesto consistente con el backend (nombre_repuesto)
          repuesto_nombre: movement.repuesto?.nombre_repuesto || movement.repuesto?.nombre || '—',
-         cantidad: movement.tipo_movimiento?.tipo === 'salida' ? -movement.cantidad : movement.cantidad
+         cantidad: movement.tipo_movimiento?.id === 2 ? -movement.cantidad : movement.cantidad
        }));
        setData(movementData);
       setError(null);
@@ -217,7 +225,7 @@ const MovementReport = () => {
 
   useEffect(() => {
     fetchMovements();
-  }, []);
+  }, [tipo, fechaInicio, fechaFin]);
 
   const formatCurrency = (value) =>
     new Intl.NumberFormat("es-GT", {
@@ -339,6 +347,7 @@ const MovementReport = () => {
               type="date"
               value={fechaInicio}
               onChange={(e) => setFechaInicio(e.target.value)}
+              max={fechaFin || undefined}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -349,6 +358,7 @@ const MovementReport = () => {
               type="date"
               value={fechaFin}
               onChange={(e) => setFechaFin(e.target.value)}
+              min={fechaInicio || undefined}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>

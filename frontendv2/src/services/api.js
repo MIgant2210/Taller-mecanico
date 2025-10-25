@@ -186,7 +186,7 @@ export const billingService = {
   
   // Reportes
   getSalesReport: (params) => api.get('/reportes/ventas', { params }),
-  getGeneralStats: () => api.get('/reportes/estadisticas-generales'),
+  getGeneralStats: (params = {}) => api.get('/reportes/estadisticas-generales', { params }),
   getMonthlySales: (year) => api.get('/reportes/ventas-mensuales', { params: { año: year } }),
   getTopServices: (params) => api.get('/reportes/top-servicios', { params }),
   getTopParts: (params) => api.get('/reportes/top-repuestos', { params }),

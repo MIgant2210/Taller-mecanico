@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users, AlertTriangle, Download, FileText, FileSpreadsheet, Calendar, RefreshCw, TrendingUp, BarChart3 } from 'lucide-react';
 import { clientsService } from '../services/api';
 import Table from '../components/Table';
 
 const ClientMonthlyReport = () => {
   const [data, setData] = useState([]);
-  const [year, setYear] = useState(new Date().getFullYear());
+  const currentYear = new Date().getFullYear();
+  const [year, setYear] = useState(currentYear.toString());
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [exportingPDF, setExportingPDF] = useState(false);
@@ -15,7 +18,9 @@ const ClientMonthlyReport = () => {
   const fetchClients = async () => {
     setLoading(true);
     setError(null);
+    
     try {
+      const selectedYear = parseInt(year);
       const res = await clientsService.getClients();
       const clientes = res.data || [];
 
@@ -27,12 +32,30 @@ const ClientMonthlyReport = () => {
       }));
 
       clientes.forEach((cliente) => {
-        const fecha = new Date(cliente.fecha_registro);
-        if (fecha.getFullYear() === parseInt(year)) {
-          const mes = fecha.getMonth();
-          grouped[mes].cantidad += 1;
+        if (!cliente.fecha_registro) return;
+        
+        try {
+          const fecha = new Date(cliente.fecha_registro);
+          if (!isNaN(fecha.getTime()) && fecha.getFullYear() === selectedYear) {
+            const mes = fecha.getMonth();
+            grouped[mes].cantidad += 1;
+          }
+        } catch (err) {
+          console.warn('Error procesando fecha de cliente:', cliente.id_cliente);
         }
       });
+
+      // Verificar si hay datos
+      const hayDatos = grouped.some(item => item.cantidad > 0);
+      if (!hayDatos) {
+        // Mostrar alerta y redirigir a la lista de reportes para que el usuario intente con otro filtro
+        alert(`No se encontraron registros de clientes para el año ${selectedYear}. Serás redirigido a la pantalla de reportes para aplicar otro filtro.`);
+        setData([]);
+        // Navegar a la pantalla principal de reportes
+        navigate('/reportes');
+        setLoading(false);
+        return;
+      }
 
       setData(grouped);
     } catch (error) {
@@ -386,14 +409,20 @@ const ClientMonthlyReport = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Año
             </label>
-            <input
-              type="number"
+            <select
               value={year}
-              onChange={(e) => setYear(e.target.value)}
-              min="2000"
-              max="2100"
-              className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+              onChange={(e) => {
+                setYear(e.target.value);
+                setError(null);
+              }}
+              className="w-48 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {Array.from({ length: currentYear - 1999 }, (_, i) => (
+                <option key={2000 + i} value={(2000 + i).toString()}>
+                  {2000 + i}
+                </option>
+              )).reverse()}
+            </select>
           </div>
           <div className="flex items-end">
             <button

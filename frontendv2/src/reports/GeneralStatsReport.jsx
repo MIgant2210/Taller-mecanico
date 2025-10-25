@@ -9,14 +9,50 @@ const GeneralStatsReport = () => {
   const [exportingCSV, setExportingCSV] = useState(false);
   const [exportingExcel, setExportingExcel] = useState(false);
   const [error, setError] = useState(null);
+  const [fechaInicio, setFechaInicio] = useState('');
+  const [fechaFin, setFechaFin] = useState('');
 
   const fetchStats = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await billingService.getGeneralStats();
-      const data = res?.data || res || {};
-      setStats(data);
+      const params = {};
+      if (fechaInicio) params.fecha_inicio = fechaInicio;
+      if (fechaFin) params.fecha_fin = fechaFin;
+
+      const res = await billingService.getGeneralStats(params);
+      // debugging: mostrar respuesta cruda para ayudar a identificar problemas de mapeo
+      // eslint-disable-next-line no-console
+      console.debug('getGeneralStats response:', res);
+
+      let payload = res?.data ?? res ?? {};
+
+      // Manejar patrones comunes de respuesta
+      if (payload.stats && typeof payload.stats === 'object') {
+        payload = payload.stats;
+      } else if (payload.data && typeof payload.data === 'object' && !Array.isArray(payload.data)) {
+        payload = payload.data;
+      } else if (payload.value && typeof payload.value === 'object') {
+        payload = payload.value;
+      }
+
+      // Si API devuelve un array de indicadores [{ key, value }] convertir a objeto
+      if (Array.isArray(payload)) {
+        const obj = {};
+        payload.forEach(item => {
+          if (item.key && (item.value !== undefined)) obj[item.key] = item.value;
+          else if (item.name && (item.value !== undefined)) obj[item.name] = item.value;
+          else if (item.nombre && (item.cantidad !== undefined)) obj[item.nombre] = item.cantidad;
+        });
+        payload = obj;
+      }
+
+      if (!payload || (typeof payload === 'object' && Object.keys(payload).length === 0)) {
+        setError('No se encontraron estadísticas en la respuesta del servidor. Revisa la consola para más detalles.');
+        setStats(null);
+      } else {
+        setStats(payload);
+      }
     } catch (error) {
       console.error('Error al cargar estadísticas generales:', error);
       setError('No se pudieron cargar las estadísticas. Por favor, intenta nuevamente.');
@@ -119,8 +155,8 @@ const GeneralStatsReport = () => {
   };
 
   const getColorForKey = (key) => {
-    const keyLower = key.toLowerCase();
-    
+    const keyLower = String(key || '').toLowerCase();
+
     // Verde solo para campos monetarios específicos
     if (keyLower.includes('ingreso') || 
         keyLower.includes('precio') || 
@@ -136,7 +172,7 @@ const GeneralStatsReport = () => {
         value: 'text-green-900'
       };
     }
-    
+
     // Azul para servicios y facturas
     if (keyLower.includes('servicio') || keyLower.includes('factura')) {
       return {
@@ -147,7 +183,7 @@ const GeneralStatsReport = () => {
         value: 'text-blue-900'
       };
     }
-    
+
     // Púrpura para repuestos y productos
     if (keyLower.includes('repuesto') || keyLower.includes('producto') || keyLower.includes('inventario')) {
       return {
@@ -158,7 +194,7 @@ const GeneralStatsReport = () => {
         value: 'text-purple-900'
       };
     }
-    
+
     // Naranja para clientes y usuarios
     if (keyLower.includes('cliente') || keyLower.includes('usuario')) {
       return {
@@ -169,7 +205,7 @@ const GeneralStatsReport = () => {
         value: 'text-orange-900'
       };
     }
-    
+
     // Cyan para totales generales
     if (keyLower.includes('total')) {
       return {
@@ -180,15 +216,27 @@ const GeneralStatsReport = () => {
         value: 'text-cyan-900'
       };
     }
-    
-    // Gris para otros
-    return {
-      bg: 'from-gray-50 to-gray-100',
-      border: 'border-gray-200',
-      iconBg: 'bg-gray-500',
-      text: 'text-gray-600',
-      value: 'text-gray-900'
-    };
+
+    // Fallback: asignar colores determinísticos desde una paleta para cualquier clave desconocida
+    const palette = [
+      { bg: 'from-rose-50 to-rose-100', border: 'border-rose-200', iconBg: 'bg-rose-500', text: 'text-rose-600', value: 'text-rose-900' },
+      { bg: 'from-emerald-50 to-emerald-100', border: 'border-emerald-200', iconBg: 'bg-emerald-500', text: 'text-emerald-600', value: 'text-emerald-900' },
+      { bg: 'from-lime-50 to-lime-100', border: 'border-lime-200', iconBg: 'bg-lime-500', text: 'text-lime-600', value: 'text-lime-900' },
+      { bg: 'from-sky-50 to-sky-100', border: 'border-sky-200', iconBg: 'bg-sky-500', text: 'text-sky-600', value: 'text-sky-900' },
+      { bg: 'from-fuchsia-50 to-fuchsia-100', border: 'border-fuchsia-200', iconBg: 'bg-fuchsia-500', text: 'text-fuchsia-600', value: 'text-fuchsia-900' },
+      { bg: 'from-amber-50 to-amber-100', border: 'border-amber-200', iconBg: 'bg-amber-500', text: 'text-amber-600', value: 'text-amber-900' },
+      { bg: 'from-teal-50 to-teal-100', border: 'border-teal-200', iconBg: 'bg-teal-500', text: 'text-teal-600', value: 'text-teal-900' },
+      { bg: 'from-indigo-50 to-indigo-100', border: 'border-indigo-200', iconBg: 'bg-indigo-500', text: 'text-indigo-600', value: 'text-indigo-900' }
+    ];
+
+    // Hash simple y determinístico para escoger color según la clave
+    let h = 0;
+    for (let i = 0; i < keyLower.length; i++) {
+      h = ((h << 5) - h) + keyLower.charCodeAt(i);
+      h |= 0; // forzar entero 32-bit
+    }
+    const idx = Math.abs(h) % palette.length;
+    return palette[idx];
   };
 
   const handleExportCSV = () => {
@@ -429,6 +477,24 @@ const GeneralStatsReport = () => {
 
   return (
     <div className="space-y-6">
+      {/* Filtros opcionales: rango de fechas */}
+      <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+        <h2 className="text-md font-semibold text-gray-800 mb-3">Filtros</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Desde</label>
+            <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Hasta</label>
+            <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+          </div>
+          <div className="flex items-center">
+            <button onClick={fetchStats} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Aplicar</button>
+            <button onClick={() => { setFechaInicio(''); setFechaFin(''); fetchStats(); }} className="ml-3 px-3 py-2 bg-gray-100 rounded-lg">Limpiar</button>
+          </div>
+        </div>
+      </div>
       {/* Acciones */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2 text-sm text-gray-600">
