@@ -1,0 +1,88 @@
+.modern-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 50;
+  max-height: 280px;
+  overflow-y: auto;
+  animation: slideIn 0.2s ease-out;
+}
+
+.dropdown-group-title {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dropdown-option {
+  padding: 0.625rem 1rem;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.dropdown-option:hover {
+  background-color: #f3f4f6;
+}
+
+.dropdown-option.selected {
+  background-color: #f5f3ff;
+  color: #6d28d9;
+}
+
+.dropdown-option.selected:hover {
+  background-color: #ede9fe;
+}
+
+.option-check {
+  color: #6d28d9;
+}
+
+.dropdown-empty {
+  padding: 2rem;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scrollbar styles */
+.modern-dropdown::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modern-dropdown::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.modern-dropdown::-webkit-scrollbar-thumb {
+  background: #c7c7c7;
+  border-radius: 4px;
+}
+
+.modern-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #a0a0a0;
+}

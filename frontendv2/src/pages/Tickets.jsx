@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Ticket, PlusCircle, Search, Edit2, Trash2, X, Eye, User, Car, Wrench, DollarSign, Calendar, FileText, Package, Plus } from 'lucide-react';
 import Table from '../components/Table';
 import Form from '../components/Form';
-import { api } from '../services/api';
+import { api, clientsService } from '../services/api';
 
 const Tickets = () => {
   const [tickets, setTickets] = useState([]);
@@ -154,10 +154,17 @@ const Tickets = () => {
 
   const ticketFields = [
     { name: 'id_cliente', label: 'Cliente', type: 'select', required: true,
-      options: clients.map(c => ({ value: c.id_cliente, label: `${c.nombres} ${c.apellidos}` }))
+      options: clients.map(c => ({ 
+        value: c.id_cliente, 
+        label: `${c.nombres} ${c.apellidos}${c.dpi ? ` - ${c.dpi}` : ''}${c.telefono ? ` - ${c.telefono}` : ''}`
+      }))
     },
     { name: 'id_vehiculo', label: 'Vehículo', type: 'select', required: true,
-      options: vehicles.map(v => ({ value: v.id_vehiculo, label: `${v.marca} ${v.modelo} - ${v.placa}` }))
+      options: vehicles.map(v => ({ 
+        value: v.id_vehiculo, 
+        label: `${v.marca} ${v.modelo} - ${v.placa}`, 
+        clienteId: v.id_cliente 
+      }))
     },
     { name: 'descripcion_problema', label: 'Descripción del Problema', type: 'textarea', required: true, fullWidth: true },
     { name: 'id_empleado_asignado', label: 'Mecánico Asignado', type: 'select',
@@ -192,6 +199,23 @@ const Tickets = () => {
     { name: 'cantidad', label: 'Cantidad', type: 'number', min: 1, required: true },
     { name: 'precio_unitario', label: 'Precio Unitario (Q)', type: 'number', step: '0.01', min: 0, required: true }
   ];
+
+  // Cargar vehículos del cliente cuando se selecciona uno
+  const handleClientChange = async (clientId) => {
+    try {
+      if (clientId) {
+        const response = await clientsService.getClientVehicles(clientId);
+        const clientVehicles = response.data || [];
+        setVehicles(clientVehicles); // Update vehicles list with client's vehicles
+      } else {
+        // If no client selected, load all vehicles
+        const response = await api.get('/vehiculos');
+        setVehicles(response.data || []);
+      }
+    } catch (error) {
+      console.error('Error loading client vehicles:', error);
+    }
+  };
 
   const handleSubmit = async (formData) => {
     try {
@@ -428,6 +452,11 @@ const Tickets = () => {
                     setEditingItem(null);
                   }}
                   submitText={editingItem ? 'Actualizar' : 'Crear'}
+                  onFieldChange={(field, value) => {
+                    if (field === 'id_cliente') {
+                      handleClientChange(value);
+                    }
+                  }}
                 />
               </div>
             </div>

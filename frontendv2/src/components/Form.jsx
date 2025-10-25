@@ -4,7 +4,8 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { createPortal } from 'react-dom';
 import { useForm } from '../hooks/useForm';
-import { Save, X, Loader2, AlertCircle, Calendar, Hash, Type, Mail, Phone, MapPin, FileText, User, Percent, Eye, Check, ChevronDown } from 'lucide-react';
+import { Save, X, Loader2, AlertCircle, Calendar, Hash, Type, Mail, Phone, MapPin, FileText, User, Percent, Eye, Check, ChevronDown, Search } from 'lucide-react';
+import './modern-select.css';
 import { clientsService, servicesService, inventoryService } from '../services/api';
 import './DatePicker.css';
 
@@ -19,7 +20,11 @@ const Form = ({
   cotizacionMode = false,
   onItemAdd,
   items = [],
-  calculatedTotals = {}
+  calculatedTotals = {},
+  // new props
+  compact = false, // reduce paddings and spacing
+  maxHeight, // optional max height for the scrollable area (e.g. '60vh')
+  onFieldChange // callback for field changes (field, value) => void
 }) => {
   const { formData, handleChange, handleSubmit, errors, setFieldError } = useForm(initialData, onSubmit);
   const [clients, setClients] = useState([]);
@@ -31,8 +36,19 @@ const Form = ({
   const [openDropdowns, setOpenDropdowns] = useState({});
   const [formStatus, setFormStatus] = useState(null); // { type: 'success'|'error', message }
   const [disabledSubmit, setDisabledSubmit] = useState(false);
+  // computed classes for compact mode
+  const compactClass = compact ? 'px-3 py-2 text-sm rounded-lg' : 'px-4 py-3 rounded-xl';
 
   useEffect(() => {
+    // focus first input on mount for better UX
+    const firstField = fields?.[0];
+    if (firstField) {
+      setTimeout(() => {
+        const el = document.getElementById(firstField.name);
+        if (el && el.focus) el.focus();
+      }, 120);
+    }
+
     // Auto-cargar opciones dinámicas si el formulario las requiere y no vienen en fields
     const needsClients = fields.some(f => /cliente|clientes|id_cliente/i.test(f.name) && (!f.options || f.options.length === 0));
     const needsServicios = fields.some(f => /servicio|servicios|id_servicio/i.test(f.name) && (!f.options || f.options.length === 0));
@@ -141,6 +157,11 @@ const Form = ({
       if (field.type === 'phone' || field.type === 'tel') {
         value = value.replace(/[^\d\s\-]/g, '');
       }
+
+      // Notify parent component of field change
+      if (onFieldChange) {
+        onFieldChange(name, value);
+      }
     }
 
     handleChange(name, value);
@@ -227,7 +248,7 @@ const Form = ({
           timeCaption="Hora"
           dateFormat={field.type === 'datetime' ? 'dd/MM/yyyy HH:mm' : 'dd/MM/yyyy'}
           popperContainer={({ children }) => createPortal(children, document.body)}
-          className={`w-full px-4 py-3 pl-11 pr-10 border rounded-xl transition-all duration-200 
+          className={`w-full ${compact ? 'px-3 py-2 pl-10 pr-8' : 'px-4 py-3 pl-11 pr-10'} border transition-all duration-200 
             focus:outline-none focus:ring-2 focus:border-transparent 
             disabled:bg-gray-100 disabled:cursor-not-allowed bg-white cursor-pointer
             ${hasError 
@@ -238,8 +259,9 @@ const Form = ({
           disabled={loading}
           required={field.required}
           autoComplete="off"
-          showMonthDropdown={false}
-          showYearDropdown={false}
+          showMonthDropdown={true}
+          showYearDropdown={true}
+          dropdownMode="select"
           isClearable
           showPopperArrow={false}
           popperClassName="modern-datepicker-popper"
@@ -341,12 +363,7 @@ const Form = ({
           calendarClassName="modern-calendar"
           minDate={field.minDate ? new Date(field.minDate) : undefined}
           maxDate={field.maxDate ? new Date(field.maxDate) : undefined}
-          onKeyDown={(e) => {
-            // Prevenir escritura en el campo
-            if (e.key !== 'Tab' && e.key !== 'Enter' && e.key !== 'Escape') {
-              e.preventDefault();
-            }
-          }}
+          // allow typing and keyboard control; validation will handle incorrect formats
         />
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
           <Calendar className="w-5 h-5 text-blue-500" />
@@ -360,10 +377,11 @@ const Form = ({
     const showIcon = !['checkbox', 'select'].includes(field.type);
     
     const inputClasses = `
-      w-full px-4 py-3 border rounded-xl transition-all duration-200
+      w-full border transition-all duration-200 text-gray-800
       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-      disabled:bg-gray-100 disabled:cursor-not-allowed
+      disabled:bg-gray-100 disabled:cursor-not-allowed bg-white cursor-text
       ${showIcon ? 'pl-11' : ''}
+      ${compact ? 'text-sm' : ''}
       ${hasError 
         ? 'border-red-300 bg-red-50 focus:ring-red-500' 
         : 'border-gray-300 bg-white hover:border-gray-400'
@@ -375,7 +393,7 @@ const Form = ({
       name: field.name,
       value: formData[field.name] || '',
       onChange: (e) => handleFieldChange(field.name, e.target.value),
-      className: inputClasses,
+      className: `${inputClasses} ${compact ? 'px-3 py-2 rounded-lg' : 'px-4 py-3 rounded-xl'}`,
       required: field.required,
       disabled: loading,
       placeholder: field.placeholder || `Ingrese ${field.label.toLowerCase()}`,
@@ -401,7 +419,7 @@ const Form = ({
             <textarea 
               {...commonProps} 
               rows={field.rows || 3}
-              className={`${inputClasses} resize-none`}
+              className={`${inputClasses} ${compact ? 'px-3 py-2 rounded-lg' : 'px-4 py-3 rounded-xl'} resize-none`}
               maxLength={field.maxLength}
             />
             {field.maxLength && (
@@ -413,14 +431,23 @@ const Form = ({
         );
       
       case 'select':
-        const SelectComponent = () => {
+          const SelectComponent = () => {
           const dropdownRef = useRef(null);
+          const inputRef = useRef(null);
           const isOpen = openDropdowns[field.name] || false;
           
           useEffect(() => {
             const handleClickOutside = (event) => {
               if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setOpenDropdowns(prev => ({ ...prev, [field.name]: false }));
+                
+                // Si el texto de búsqueda no coincide con ninguna opción, limpiar
+                const searchTerm = formData[`${field.name}_search`] || '';
+                const selectedOption = field.options?.find(opt => opt.value === formData[field.name]);
+                if (!selectedOption && searchTerm) {
+                  handleFieldChange(`${field.name}_search`, '');
+                  handleFieldChange(field.name, '');
+                }
               }
             };
             
@@ -442,51 +469,95 @@ const Form = ({
             baseOptions = baseOptions.filter(o => String(o.clienteId) === String(selectedClientId));
           }
 
-          const filteredOptions = baseOptions.filter(opt => 
-            opt.label.toLowerCase().includes(searchTerm.toLowerCase())
-          ) || [];
-
-          return (
+          const filteredOptions = searchTerm 
+            ? baseOptions.filter(opt => 
+                opt.label.toLowerCase().includes(searchTerm.toLowerCase())
+              )
+            : baseOptions;          return (
             <div className="relative" ref={dropdownRef}>
               <div className="relative">
                 {showIcon && (
                   <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none z-10">
-                    {getFieldIcon(field)}
+                    {selectedOption ? getFieldIcon(field) : <Search className="w-5 h-5 text-gray-400" />}
                   </div>
                 )}
-                <input
-                  type="text"
-                  value={searchTerm || (selectedOption ? selectedOption.label : '')}
-                  onChange={(e) => {
-                    handleFieldChange(`${field.name}_search`, e.target.value);
-                    setOpenDropdowns(prev => ({ ...prev, [field.name]: true }));
-                    if (!e.target.value) {
-                      handleFieldChange(field.name, '');
-                    }
-                  }}
-                  onFocus={() => setOpenDropdowns(prev => ({ ...prev, [field.name]: true }))}
-                  className={`${inputClasses} pr-10`}
-                  placeholder={field.placeholder || `Buscar ${field.label.toLowerCase()}...`}
-                  autoComplete="off"
-                  disabled={loading}
-                />
-                <button
-                  type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setOpenDropdowns(prev => ({ ...prev, [field.name]: !prev[field.name] }));
-                  }}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1.5 hover:bg-gray-100 rounded transition-colors"
-                  disabled={loading}
-                  tabIndex={-1}
-                >
-                  <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-                </button>
+                <div className="relative">
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      handleFieldChange(`${field.name}_search`, value);
+                      setOpenDropdowns(prev => ({ ...prev, [field.name]: true }));
+                      
+                      // Si se borra todo el texto, limpiar la selección
+                      if (!value) {
+                        handleFieldChange(field.name, '');
+                      }
+                    }}
+                    onFocus={() => {
+                      setOpenDropdowns(prev => ({ ...prev, [field.name]: true }));
+                      if (selectedOption) {
+                        handleFieldChange(`${field.name}_search`, '');
+                      }
+                    }}
+                    onBlur={() => {
+                      // Esperar un momento para permitir que el click en una opción se procese
+                      setTimeout(() => {
+                        if (!dropdownRef.current?.contains(document.activeElement)) {
+                          setOpenDropdowns(prev => ({ ...prev, [field.name]: false }));
+                          // Restaurar el texto de la opción seleccionada o limpiar
+                          if (selectedOption) {
+                            handleFieldChange(`${field.name}_search`, selectedOption.label);
+                          } else {
+                            handleFieldChange(`${field.name}_search`, '');
+                          }
+                        }
+                      }, 200);
+                    }}
+                    className={`${inputClasses} ${compact ? 'px-3 py-2 rounded-lg' : 'px-4 py-3 rounded-xl'} pr-20`}
+                    placeholder={selectedOption ? selectedOption.label : `Buscar ${field.label.toLowerCase()}...`}
+                    autoComplete="off"
+                    disabled={loading}
+                  />
+                  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 flex items-center">
+                    {selectedOption && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleFieldChange(field.name, '');
+                          handleFieldChange(`${field.name}_search`, '');
+                          inputRef.current?.focus();
+                        }}
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-400 hover:text-gray-600"
+                        disabled={loading}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setOpenDropdowns(prev => ({ ...prev, [field.name]: !prev[field.name] }));
+                        if (!isOpen) {
+                          inputRef.current?.focus();
+                        }
+                      }}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors mr-1"
+                      disabled={loading}
+                      tabIndex={-1}
+                    >
+                      <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                  </div>
+                </div>
               </div>
 
               {isOpen && (
@@ -741,7 +812,7 @@ const Form = ({
 
   return (
     <>
-      <form onSubmit={(e) => {
+  <form onSubmit={(e) => {
         // Before submit, enforce selects only accept values from options
         let valid = true;
         fields.forEach(f => {
@@ -772,12 +843,19 @@ const Form = ({
           }
         });
 
-        if (!valid) {
-          e.preventDefault();
-          setFormStatus({ type: 'error', message: 'Por favor corrige los errores del formulario' });
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          return;
-        }
+            if (!valid) {
+              e.preventDefault();
+              setFormStatus({ type: 'error', message: 'Por favor corrige los errores del formulario' });
+              // focus first invalid field
+              setTimeout(() => {
+                const firstErrorField = Object.keys(fieldValidations).find(k => fieldValidations[k]);
+                const el = document.getElementById(firstErrorField) || document.querySelector('.animate-slideIn input, .animate-slideIn textarea, .animate-slideIn select');
+                if (el && el.focus) el.focus();
+                // scroll container to element
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }, 80);
+              return;
+            }
 
         // Ejecutar validación completa antes de enviar (además de las comprobaciones anteriores)
         const newFieldErrors = {};
@@ -795,7 +873,7 @@ const Form = ({
 
         handleSubmit(e);
       }} className="flex flex-col h-full" noValidate>
-        <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+        <div className="flex-1 overflow-y-auto pr-2 -mr-2" style={{ maxHeight: maxHeight || '60vh' }}>
           {/* Alerts */}
           {formStatus && (
             <div className={`mb-4 p-4 rounded-lg border ${formStatus.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-700'} shadow-sm animate-fadeIn`}>
@@ -877,27 +955,27 @@ const Form = ({
                 type="button"
                 onClick={onCancel}
                 disabled={loading}
-                className="flex items-center justify-center gap-2 px-6 py-3 border-2 border-red-300 rounded-xl text-red-600 font-semibold hover:bg-red-50 hover:border-red-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`flex items-center justify-center gap-2 ${compact ? 'px-3 py-2 text-sm' : 'px-6 py-3'} border-2 border-red-300 rounded-lg text-red-600 font-semibold hover:bg-red-50 hover:border-red-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 <X className="w-5 h-5" />
                 {cancelText}
               </button>
             )}
-            
+
             <button
               type="submit"
               disabled={loading || Object.values(fieldValidations).some(Boolean)}
-              className="flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-emerald-800 hover:shadow-lg hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className={`flex items-center justify-center gap-2 ${compact ? 'px-4 py-2 text-sm' : 'px-8 py-3'} bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-lg font-semibold hover:from-emerald-700 hover:to-emerald-800 hover:shadow-md hover:scale-102 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100`}
             >
               {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Procesando...
+                  <span className="ml-2">Procesando...</span>
                 </>
               ) : (
                 <>
                   <Save className="w-5 h-5" />
-                  {submitText}
+                  <span className="ml-2">{submitText}</span>
                 </>
               )}
             </button>

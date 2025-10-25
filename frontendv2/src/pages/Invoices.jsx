@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FileText, PlusCircle, Search, Edit2, Trash2, X, Eye, DollarSign, Calendar, TrendingUp, CheckCircle, Clock, XCircle, CreditCard } from 'lucide-react';
 import Table from '../components/Table';
 import Form from '../components/Form';
+import InvoiceModal from '../components/InvoiceModal';
 import { api } from '../services/api';
 
 const Invoices = () => {
@@ -14,6 +15,8 @@ const Invoices = () => {
   const [editingItem, setEditingItem] = useState(null);
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewInvoice, setPreviewInvoice] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTicket, setSelectedTicket] = useState(null);
 
@@ -405,18 +408,9 @@ const Invoices = () => {
   };
 
   const handleView = (invoice) => {
-    const statusConfig = getPaymentStatusConfig(invoice.estado_pago);
-    alert(
-      `📄 FACTURA #${invoice.numero_factura}\n\n` +
-      `👤 Cliente: ${invoice.cliente?.nombres} ${invoice.cliente?.apellidos}\n` +
-      `💰 Subtotal: Q${parseFloat(invoice.subtotal || 0).toFixed(2)}\n` +
-      `📈 Impuestos: Q${parseFloat(invoice.impuestos || 0).toFixed(2)}\n` +
-      `🎁 Descuentos: Q${parseFloat(invoice.descuentos || 0).toFixed(2)}\n` +
-      `💵 TOTAL: Q${parseFloat(invoice.total || 0).toFixed(2)}\n\n` +
-      `📊 Estado: ${statusConfig.label}\n` +
-      `💳 Forma de Pago: ${invoice.forma_pago?.nombre_forma_pago || 'N/A'}\n` +
-      `📅 Fecha: ${new Date(invoice.fecha_factura).toLocaleDateString('es-ES')}`
-    );
+    // show preview modal instead of alert
+    setPreviewInvoice(invoice);
+    setShowPreview(true);
   };
 
   const handleEdit = (item) => {
@@ -650,6 +644,8 @@ const Invoices = () => {
                 <Form
                   fields={invoiceFields}
                   initialData={editingItem || {}}
+                  compact={true}
+                  maxHeight="55vh"
                   onSubmit={handleSubmit}
                   onCancel={() => {
                     setShowForm(false);
@@ -683,6 +679,8 @@ const Invoices = () => {
                 <Form
                   fields={reportFields}
                   onSubmit={handleReportSubmit}
+                  compact={true}
+                  maxHeight="50vh"
                   onCancel={() => setShowReportForm(false)}
                   submitText="Generar Reporte"
                 />
@@ -723,6 +721,15 @@ const Invoices = () => {
               />
             )}
           </div>
+        )}
+
+        {/* Invoice Preview Modal */}
+        {showPreview && (
+          <InvoiceModal
+            invoice={previewInvoice}
+            tickets={tickets}
+            onClose={() => { setShowPreview(false); setPreviewInvoice(null); }}
+          />
         )}
 
         {/* Reports Tab */}

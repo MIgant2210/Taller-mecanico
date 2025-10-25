@@ -3,7 +3,7 @@ import Table from '../components/Table';
 import Form from '../components/Form';
 import { api } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
-import { Plus, Users, AlertCircle, Loader } from 'lucide-react';
+import { Plus, Users, AlertCircle, Loader, UserCircle, Briefcase, Shield } from 'lucide-react';
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('users');
@@ -21,9 +21,12 @@ const Admin = () => {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-3" />
+          <div className="relative inline-flex items-center justify-center w-20 h-20 mb-6">
+            <div className="absolute inset-0 bg-red-100 rounded-full animate-pulse"></div>
+            <Shield className="w-10 h-10 text-red-600 relative z-10" />
+          </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Acceso Denegado</h2>
-          <p className="text-gray-600">No tienes permisos para acceder a esta sección</p>
+          <p className="text-gray-600 max-w-md mx-auto">No tienes los permisos necesarios para acceder a esta sección administrativa</p>
         </div>
       </div>
     );
@@ -82,12 +85,13 @@ const Admin = () => {
       key: 'activo', 
       title: 'Estado', 
       render: (value) => (
-        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
           value 
-            ? 'bg-green-50 text-green-700 border border-green-200' 
-            : 'bg-red-50 text-red-700 border border-red-200'
+            ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20' 
+            : 'bg-gray-100 text-gray-600 ring-1 ring-gray-500/20'
         }`}>
-          {value ? '● Activo' : '● Inactivo'}
+          <span className={`w-1.5 h-1.5 rounded-full ${value ? 'bg-emerald-500' : 'bg-gray-400'}`}></span>
+          {value ? 'Activo' : 'Inactivo'}
         </span>
       )
     },
@@ -113,12 +117,13 @@ const Admin = () => {
       key: 'activo', 
       title: 'Estado', 
       render: (value) => (
-        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
           value 
-            ? 'bg-green-50 text-green-700 border border-green-200' 
-            : 'bg-red-50 text-red-700 border border-red-200'
+            ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20' 
+            : 'bg-gray-100 text-gray-600 ring-1 ring-gray-500/20'
         }`}>
-          {value ? '● Activo' : '● Inactivo'}
+          <span className={`w-1.5 h-1.5 rounded-full ${value ? 'bg-emerald-500' : 'bg-gray-400'}`}></span>
+          {value ? 'Activo' : 'Inactivo'}
         </span>
       )
     }
@@ -204,120 +209,162 @@ const Admin = () => {
   };
 
   const tabConfig = {
-    users: { icon: '👤', title: 'Usuarios', description: 'Gestión de usuarios del sistema' },
-    employees: { icon: '👥', title: 'Empleados', description: 'Gestión de empleados' }
+    users: { 
+      icon: UserCircle, 
+      title: 'Usuarios', 
+      description: 'Gestión de usuarios del sistema',
+      color: 'blue',
+      bgColor: 'bg-blue-50',
+      textColor: 'text-blue-600',
+      borderColor: 'border-blue-200'
+    },
+    employees: { 
+      icon: Briefcase, 
+      title: 'Empleados', 
+      description: 'Gestión de empleados',
+      color: 'indigo',
+      bgColor: 'bg-indigo-50',
+      textColor: 'text-indigo-600',
+      borderColor: 'border-indigo-200'
+    }
   };
 
   const currentTab = tabConfig[activeTab];
+  const Icon = currentTab.icon;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl">{currentTab.icon}</span>
-            <h1 className="text-3xl font-bold text-gray-900">{currentTab.title}</h1>
-          </div>
-          <p className="text-gray-600">{currentTab.description}</p>
-        </div>
-        
-        <button
-          onClick={() => {
-            setEditingItem(null);
-            setShowForm(true);
-          }}
-          className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
-        >
-          <Plus size={20} />
-          Nuevo {activeTab === 'users' ? 'Usuario' : 'Empleado'}
-        </button>
-      </div>
-
-      {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="flex space-x-8">
-          {Object.entries(tabConfig).map(([key, { icon, title }]) => (
-            <button
-              key={key}
-              onClick={() => setActiveTab(key)}
-              className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === key
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {icon} {title}
-            </button>
-          ))}
-        </nav>
-      </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-          <div>
-            <p className="text-red-900 font-medium">Error</p>
-            <p className="text-red-700 text-sm">{error}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Form Modal */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">
-                {editingItem ? 'Editar' : 'Crear'} {activeTab === 'users' ? 'Usuario' : 'Empleado'}
-              </h2>
-              <button
-                onClick={() => {
-                  setShowForm(false);
-                  setEditingItem(null);
-                }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                ✕
-              </button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header Section */}
+        <div className="mb-8">
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex items-start gap-4">
+              <div className={`${currentTab.bgColor} ${currentTab.textColor} p-3 rounded-xl shadow-sm ring-1 ${currentTab.borderColor}`}>
+                <Icon size={28} strokeWidth={2} />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-1 tracking-tight">{currentTab.title}</h1>
+                <p className="text-gray-600">{currentTab.description}</p>
+              </div>
             </div>
             
-            <div className="p-6">
-              <Form
-                fields={activeTab === 'users' ? userFields : employeeFields}
-                initialData={editingItem || {}}
-                onSubmit={handleSubmit}
-                onCancel={() => {
-                  setShowForm(false);
-                  setEditingItem(null);
-                }}
-                submitText={editingItem ? 'Actualizar' : 'Crear'}
-              />
+            <button
+              onClick={() => {
+                setEditingItem(null);
+                setShowForm(true);
+              }}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-2.5 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 hover:-translate-y-0.5"
+            >
+              <Plus size={20} strokeWidth={2.5} />
+              Nuevo {activeTab === 'users' ? 'Usuario' : 'Empleado'}
+            </button>
+          </div>
+
+          {/* Tabs */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-1">
+            <nav className="flex gap-1">
+              {Object.entries(tabConfig).map(([key, { icon: TabIcon, title }]) => (
+                <button
+                  key={key}
+                  onClick={() => setActiveTab(key)}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg font-medium text-sm transition-all duration-200 ${
+                    activeTab === key
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  <TabIcon size={18} strokeWidth={2} />
+                  {title}
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 shadow-sm">
+            <div className="bg-red-100 rounded-lg p-2">
+              <AlertCircle className="w-5 h-5 text-red-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-red-900 font-semibold">Error</p>
+              <p className="text-red-700 text-sm mt-0.5">{error}</p>
+            </div>
+            <button 
+              onClick={() => setError(null)}
+              className="text-red-400 hover:text-red-600 transition-colors"
+            >
+              <span className="text-lg">×</span>
+            </button>
+          </div>
+        )}
+
+        {/* Form Modal */}
+        {showForm && (
+          <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
+              <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-white/20 p-2 rounded-lg">
+                    <Icon size={20} className="text-white" />
+                  </div>
+                  <h2 className="text-xl font-bold text-white">
+                    {editingItem ? 'Editar' : 'Crear'} {activeTab === 'users' ? 'Usuario' : 'Empleado'}
+                  </h2>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowForm(false);
+                    setEditingItem(null);
+                  }}
+                  className="text-white/80 hover:text-white transition-colors bg-white/10 hover:bg-white/20 rounded-lg p-1.5"
+                >
+                  <span className="text-xl font-light">×</span>
+                </button>
+              </div>
+              
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+                <Form
+                  fields={activeTab === 'users' ? userFields : employeeFields}
+                  initialData={editingItem || {}}
+                  onSubmit={handleSubmit}
+                  onCancel={() => {
+                    setShowForm(false);
+                    setEditingItem(null);
+                  }}
+                  submitText={editingItem ? 'Actualizar' : 'Crear'}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Content */}
-      {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="flex flex-col items-center gap-3">
-            <Loader className="w-8 h-8 text-blue-600 animate-spin" />
-            <p className="text-gray-600">Cargando {currentTab.title.toLowerCase()}...</p>
+        {/* Content */}
+        {loading ? (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-16">
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative">
+                <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
+              </div>
+              <div className="text-center">
+                <p className="text-gray-900 font-medium">Cargando {currentTab.title.toLowerCase()}</p>
+                <p className="text-gray-500 text-sm mt-1">Por favor espera un momento</p>
+              </div>
+            </div>
           </div>
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <Table
-            data={activeTab === 'users' ? users : employees}
-            columns={activeTab === 'users' ? userColumns : employeeColumns}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            emptyMessage={`No hay ${currentTab.title.toLowerCase()} registrados`}
-          />
-        </div>
-      )}
+        ) : (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <Table
+              data={activeTab === 'users' ? users : employees}
+              columns={activeTab === 'users' ? userColumns : employeeColumns}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              emptyMessage={`No hay ${currentTab.title.toLowerCase()} registrados`}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 };

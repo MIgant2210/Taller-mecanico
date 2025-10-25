@@ -150,6 +150,11 @@ const Cotizaciones = () => {
   const [alert, setAlert] = useState(null);
   const [cotizacionItems, setCotizacionItems] = useState([]);
   const [exportData, setExportData] = useState(null);
+  const [showResumen, setShowResumen] = useState(true);
+  const [formData, setFormData] = useState({
+    impuestos: 0,
+    descuentos: 0
+  });
 
   useEffect(() => {
     loadData();
@@ -191,19 +196,45 @@ const Cotizaciones = () => {
 
   // Calcular totales
   const calcularTotales = (items, impuestos = 0, descuentos = 0) => {
-    const subtotal = items.reduce((sum, item) => 
-      sum + (parseFloat(item.precio_unitario || 0) * parseFloat(item.cantidad || 0)), 0
-    );
-    const montoImpuestos = (subtotal * parseFloat(impuestos || 0)) / 100;
-    const montoDescuentos = (subtotal * parseFloat(descuentos || 0)) / 100;
+    // Ensure we have valid numbers
+    const impuestosNum = parseFloat(impuestos || 0);
+    const descuentosNum = parseFloat(descuentos || 0);
+    
+    // Calculate subtotal from items
+    const subtotal = items.reduce((sum, item) => {
+      const precio = parseFloat(item.precio_unitario || 0);
+      const cantidad = parseFloat(item.cantidad || 0);
+      return sum + (precio * cantidad);
+    }, 0);
+
+    // Calculate tax and discount amounts
+    const montoImpuestos = (subtotal * impuestosNum) / 100;
+    const montoDescuentos = (subtotal * descuentosNum) / 100;
+    
+    // Calculate final total
     const total = subtotal + montoImpuestos - montoDescuentos;
 
-    return {
+    // Return rounded values to 2 decimal places
+    const result = {
       subtotal: parseFloat(subtotal.toFixed(2)),
       montoImpuestos: parseFloat(montoImpuestos.toFixed(2)),
       montoDescuentos: parseFloat(montoDescuentos.toFixed(2)),
       total: parseFloat(total.toFixed(2))
     };
+
+    // Log for debugging
+    console.log('🧮 Cálculos:', {
+      items: items.length,
+      subtotal,
+      impuestos: impuestosNum,
+      montoImpuestos,
+      descuentos: descuentosNum,
+      montoDescuentos,
+      total,
+      result
+    });
+
+    return result;
   };
 
   // CORRECCIÓN: Campos del formulario con clients actualizados
@@ -215,7 +246,7 @@ const Cotizaciones = () => {
       required: true,
       options: Array.isArray(clients) ? clients.map(c => ({
         value: c.id_cliente?.toString(),
-        label: `${c.nombres} ${c.apellidos}`
+        label: `${c.nombres} ${c.apellidos}${c.dpi ? ` - ${c.dpi}` : ''}${c.telefono ? ` - ${c.telefono}` : ''}`
       })) : []
     },
     {
@@ -224,7 +255,10 @@ const Cotizaciones = () => {
       type: 'number',
       step: '0.01',
       min: 0,
-      defaultValue: 0
+      max: 100,
+      defaultValue: 0,
+      helpText: 'Porcentaje de impuestos a aplicar sobre el subtotal',
+      placeholder: 'Ej: 12.00'
     },
     {
       name: 'descuentos',
@@ -232,13 +266,17 @@ const Cotizaciones = () => {
       type: 'number',
       step: '0.01',
       min: 0,
-      defaultValue: 0
+      max: 100,
+      defaultValue: 0,
+      helpText: 'Porcentaje de descuento a aplicar sobre el subtotal',
+      placeholder: 'Ej: 10.00'
     },
     {
       name: 'observaciones',
       label: 'Observaciones',
       type: 'textarea',
-      fullWidth: true
+      fullWidth: true,
+      placeholder: 'Ingrese observaciones o notas adicionales para la cotización'
     }
   ];
 
@@ -371,12 +409,22 @@ const Cotizaciones = () => {
         formData.descuentos || 0
       );
 
+      // Log calculations for debugging
+      console.log('💰 Calculando totales:', {
+        items: cotizacionItems,
+        impuestos: formData.impuestos || 0,
+        descuentos: formData.descuentos || 0,
+        resultado: totals
+      });
+
       const payload = {
         id_cliente: parseInt(formData.id_cliente),
         subtotal: totals.subtotal,
         total: totals.total,
         impuestos: parseFloat(formData.impuestos || 0),
+        impuestoMonto: totals.montoImpuestos,
         descuentos: parseFloat(formData.descuentos || 0),
+        descuentoMonto: totals.montoDescuentos,
         observaciones: formData.observaciones || null,
         detalles: cotizacionItems.map(item => ({
           tipo_item: item.tipo_item,
@@ -417,6 +465,10 @@ const Cotizaciones = () => {
   const handleEdit = (cotizacion) => {
     setEditingItem(cotizacion);
     setCotizacionItems(cotizacion.detalles || []);
+    setFormData({
+      impuestos: cotizacion.impuestos || 0,
+      descuentos: cotizacion.descuentos || 0
+    });
     setShowForm(true);
   };
 
@@ -489,14 +541,19 @@ const Cotizaciones = () => {
 };
 
   const handleAddItem = (type) => {
-    const item = {
+    const newItem = {
       tipo_item: type,
       id_item: '',
       descripcion: '',
       cantidad: 1,
-      precio_unitario: 0
+      precio_unitario: 0,
+      subtotal: 0
     };
-    setCotizacionItems([...cotizacionItems, item]);
+
+    // Asignar un ID temporal único para el manejo en el frontend
+    newItem.temp_id = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    setCotizacionItems(prevItems => [...prevItems, newItem]);
   };
 
   const handleRemoveItem = (index) => {
@@ -974,30 +1031,145 @@ const stats = {
                     setEditingItem(null);
                     setCotizacionItems([]);
                   }}
+                  onFieldChange={(field, value) => {
+                    // Actualizar formData para los cálculos en tiempo real
+                    setFormData(prev => ({
+                      ...prev,
+                      [field]: value
+                    }));
+                  }}
+                  items={cotizacionItems}
+                  calculatedTotals={calcularTotales(
+                    cotizacionItems, 
+                    formData.impuestos || 0, 
+                    formData.descuentos || 0
+                  )}
                   submitText={editingItem ? 'Actualizar' : 'Crear'}
                 />
 
                 {/* Items Section */}
-                <div className="mt-6 border-t pt-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-bold text-gray-900">Items de la Cotización</h3>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleAddItem('servicio')}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-                      >
-                        <Wrench className="w-4 h-4" />
-                        Agregar Servicio
-                      </button>
-                      <button
-                        onClick={() => handleAddItem('repuesto')}
-                        className="flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors"
-                      >
-                        <Package className="w-4 h-4" />
-                        Agregar Repuesto
-                      </button>
-                    </div>
+                {/* Botón flotante para mostrar/ocultar resumen */}
+      <button
+        onClick={() => setShowResumen(!showResumen)}
+        className={`fixed bottom-4 right-4 z-50 p-3 rounded-full shadow-lg transition-all duration-300 ${
+          showResumen 
+            ? 'bg-red-500 hover:bg-red-600' 
+            : 'bg-purple-600 hover:bg-purple-700'
+        }`}
+      >
+        <DollarSign className="w-6 h-6 text-white" />
+      </button>
+
+      {/* Panel Flotante de Resumen */}
+      <div className={`fixed bottom-20 right-4 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl border border-purple-200 overflow-hidden z-50 transition-all duration-300 transform ${
+        showResumen ? 'translate-x-0' : 'translate-x-[120%]'
+      }`}>
+        <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-3 flex items-center justify-between">
+          <h3 className="font-bold text-lg flex items-center gap-2">
+            <DollarSign className="w-5 h-5" />
+            Resumen de Cotización
+          </h3>
+          <div className="text-sm bg-white/20 px-2 py-1 rounded-lg">
+            {cotizacionItems.length} {cotizacionItems.length === 1 ? 'item' : 'items'}
+          </div>
+        </div>
+        
+        <div className="max-h-[60vh] overflow-y-auto">
+          {cotizacionItems.length > 0 ? (
+            <div className="divide-y divide-gray-100">
+              {/* Lista de items */}
+              {cotizacionItems.map((item, index) => (
+                <div key={index} className="p-3 hover:bg-purple-50/50 transition-colors">
+                  <div className="flex items-center gap-2 mb-1">
+                    {item.tipo_item === 'servicio' ? (
+                      <Wrench className="w-4 h-4 text-blue-600" />
+                    ) : (
+                      <Package className="w-4 h-4 text-orange-600" />
+                    )}
+                    <span className="font-medium text-gray-900">{item.descripcion}</span>
                   </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">
+                      {item.cantidad} × Q{parseFloat(item.precio_unitario).toFixed(2)}
+                    </span>
+                    <span className="font-semibold text-purple-900">
+                      Q{(parseFloat(item.cantidad) * parseFloat(item.precio_unitario)).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500 px-4">
+              <Package className="w-12 h-12 mx-auto mb-2 opacity-50" />
+              <p>No hay items agregados</p>
+              <p className="text-sm mt-1">Agrega servicios o repuestos para ver el cálculo</p>
+            </div>
+          )}
+        </div>
+
+        {/* Panel de Totales */}
+        <div className="border-t border-purple-100 bg-gradient-to-br from-purple-50 to-purple-100">
+          <div className="p-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Subtotal:</span>
+              <span className="font-medium">
+                Q{calcularTotales(cotizacionItems, 0, 0).subtotal.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">
+                + Impuestos ({parseFloat(formData.impuestos || 0).toFixed(1)}%):
+              </span>
+              <span className="font-medium text-blue-600">
+                Q{calcularTotales(cotizacionItems, formData.impuestos || 0, 0).montoImpuestos.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">
+                - Descuentos ({parseFloat(formData.descuentos || 0).toFixed(1)}%):
+              </span>
+              <span className="font-medium text-red-600">
+                Q{calcularTotales(cotizacionItems, 0, formData.descuentos || 0).montoDescuentos.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between text-lg font-bold pt-2 border-t border-purple-200">
+              <span className="text-purple-900">TOTAL:</span>
+              <span className="text-purple-900">
+                Q{calcularTotales(
+                  cotizacionItems, 
+                  formData.impuestos || 0, 
+                  formData.descuentos || 0
+                ).total.toFixed(2)}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-gradient-to-br from-gray-50 to-purple-50 rounded-xl border border-purple-200 p-6 mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 mb-1">Items de la Cotización</h3>
+            <p className="text-sm text-gray-600">Agrega los servicios y repuestos necesarios</p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+            <button
+              onClick={() => handleAddItem('servicio')}
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30"
+            >
+              <Wrench className="w-5 h-5" />
+              Agregar Servicio
+            </button>
+            <button
+              onClick={() => handleAddItem('repuesto')}
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30"
+            >
+              <Package className="w-5 h-5" />
+              Agregar Repuesto
+            </button>
+          </div>
+        </div>
 
                   {cotizacionItems.length > 0 ? (
                     <div className="space-y-3">
